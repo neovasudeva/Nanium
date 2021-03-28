@@ -33,6 +33,6 @@ regfile regs (
     .dest   (memwb_rd),
     .reg_a  (id_rs1_out), 
     .reg_b  (id_rs2_out)
-)
+);
 
 endmodule : id_stage

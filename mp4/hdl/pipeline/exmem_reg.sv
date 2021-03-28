@@ -11,7 +11,7 @@ module exmem_reg(
     input ctrl_types::ctrl_t idex_ctrl_word,
     output ctrl_types::ctrl_t exmem_ctrl_word,
     input rv32i_word idex_pc,
-    output rv32iword exmem_pc,
+    output rv32i_word exmem_pc,
     input rv32i_reg ex_br_en,
     output rv32i_reg exmem_br_en,
     input rv32i_word ex_alu_out,
@@ -19,11 +19,11 @@ module exmem_reg(
     input rv32i_word idex_rs2_out,
     output rv32i_word exmem_rs2_out,
     input instr_types::instr_t idex_instruction,
-    output instr_types::instr_t exmem_instruction,
+    output instr_types::instr_t exmem_instruction
 );
 
 // EX / MEM Registers
-register #(.width=20) exmem_ctrl_word_reg(
+register #(.width(20)) exmem_ctrl_word_reg(
     .clk    (clk),
     .rst    (exmem_rst),
     .load   (exmem_load),
@@ -39,7 +39,7 @@ register exmem_pc_reg(
     .out    (exmem_pc)
 );
 
-register #(.width=1) exmem_br_en_reg(
+register #(.width(1)) exmem_br_en_reg(
     .clk    (clk),
     .rst    (exmem_rst),
     .load   (exmem_load),
@@ -63,7 +63,7 @@ register exmem_rs2_out_reg(
     .out    (exmem_rs2_out)
 );
 
-register #(.width=192) exmem_instr_reg(
+register #(.width(192)) exmem_instr_reg(
     .clk    (clk),
     .rst    (exmem_rst),
     .load   (exmem_load),

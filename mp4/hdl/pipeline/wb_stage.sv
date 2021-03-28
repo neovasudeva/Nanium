@@ -1,6 +1,7 @@
 import rv32i_types::*;
 import ctrl_types::*;
 import instr_types::*;
+import regfilemux::*;
 
 module wb_stage(
     input clk,
@@ -19,7 +20,7 @@ module wb_stage(
 /******************************** Muxes **************************************/
 always_comb begin : MUXES
     // regfilemux
-    unique case (idex_ctrl_word.regfilemux_sel)
+    unique case (memwb_ctrl_word.regfilemux_sel)
         regfilemux::alu_out:    wb_regfilemux_out = memwb_alu_out;
         regfilemux::br_en:      wb_regfilemux_out = memwb_br_en;
         regfilemux::u_imm:      wb_regfilemux_out = memwb_instruction.u_imm;

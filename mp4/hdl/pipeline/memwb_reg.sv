@@ -19,11 +19,11 @@ module memwb_rg(
     input instr_types::instr_t exmem_instruction,
     output instr_types::instr_t memwb_instruction,
     input rv32i_word exmem_pc,
-    output rv32iword memwb_pc
+    output rv32i_word memwb_pc
 );
 
 // MEM / WB Registers
-register #(.width=20) memwb_ctrl_word_reg(
+register #(.width(20)) memwb_ctrl_word_reg(
     .clk    (clk),
     .rst    (memwb_rst),
     .load   (memwb_load),
@@ -31,7 +31,7 @@ register #(.width=20) memwb_ctrl_word_reg(
     .out    (memwb_ctrl_word)
 );
 
-register #(.width=1) memwb_br_en_reg(
+register #(.width(1)) memwb_br_en_reg(
     .clk    (clk),
     .rst    (memwb_rst),
     .load   (memwb_load),
@@ -55,7 +55,7 @@ register memwb_alu_out_reg(
     .out    (memwb_alu_out)
 );
 
-register #(.width=192) memwb_instr_reg(
+register #(.width(192)) memwb_instr_reg(
     .clk    (clk),
     .rst    (memwb_rst),
     .load   (memwb_load),

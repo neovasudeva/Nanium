@@ -1,6 +1,8 @@
 import rv32i_types::*;
 import instr_types::*;
 import ctrl_types::*;
+import alumux::*;
+import cmpmux::*;
 
 module ex_stage(
     // not needed yet
@@ -45,7 +47,7 @@ always_comb begin : MUXES
         alumux::s_imm:      alumux2_out = idex_instruction.s_imm;
         alumux::j_imm:      alumux2_out = idex_instruction.j_imm;
         alumux::rs2_out:    alumux2_out = idex_rs2_out;
-        default: //FIX ME ;
+        default: ;//FIX ME ;
     endcase
 end
 /*****************************************************************************/

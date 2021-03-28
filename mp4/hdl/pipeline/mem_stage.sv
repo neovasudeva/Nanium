@@ -1,6 +1,7 @@
 import rv32i_types::*;
 import instr_types::*;
 import ctrl_types::*;
+import dcachemux::*;
 
 /* 
  * Sends dcache_address, dcache_byte_enable, dcache_read/write, dcache_wdata as outputs to dcache 
@@ -56,8 +57,8 @@ always_comb begin : READ
 
     // lh mux
     unique case (exmem_alu_out[1:0])
-        2'b00:      lhmux_out = {16{dcache_rdata[15]}, dcache_rdata[15:0]};
-        2'b10:      lhmux_out = {16{dcache_rdata[31]}, dcache_rdata[31:16]};
+        2'b00:      lhmux_out = {{16{dcache_rdata[15]}}, dcache_rdata[15:0]};
+        2'b10:      lhmux_out = {{16{dcache_rdata[31]}}, dcache_rdata[31:16]};
         default:    lhmux_out = {exmem_alu_out[31:2], 2'b0};
     endcase
 
@@ -71,20 +72,20 @@ always_comb begin : READ
 
     // lb mux
     unique case (exmem_alu_out[1:0])
-        2'b00:  lbmux_out = {24{dcache_rdata[7]}, dcache_rdata[7:0]};
-        2'b01:  lbmux_out = {24{dcache_rdata[15]}, dcache_rdata[15:8]};    
-        2'b10:  lbmux_out = {24{dcache_rdata[23]}, dcache_rdata[23:16]};
-        2'b11:  lbmux_out = {24{dcache_rdata[31]}, dcache_rdata[31:24]};
+        2'b00:  lbmux_out = {{24{dcache_rdata[7]}}, dcache_rdata[7:0]};
+        2'b01:  lbmux_out = {{24{dcache_rdata[15]}}, dcache_rdata[15:8]};    
+        2'b10:  lbmux_out = {{24{dcache_rdata[23]}}, dcache_rdata[23:16]};
+        2'b11:  lbmux_out = {{24{dcache_rdata[31]}}, dcache_rdata[31:24]};
     endcase
 
     // rdata
     unique case (exmem_ctrl_word.rdata_sel) 
-        regfilemux::lw:     mem_rdata = dcache_rdata;
-        regfilemux::lhu:    mem_rdata = lhumux_out; 
-        regfilemux::lh:     mem_rdata = lhmux_out;
-        regfilemux::lbu:    mem_rdata = lbumux_out;
-        regfilemux::lb:     mem_rdata = lbmux_out;
-        default:            mem_rdata = dcache_rdata;
+        dcachemux::lw:     mem_rdata = dcache_rdata;
+        dcachemux::lhu:    mem_rdata = lhumux_out; 
+        dcachemux::lh:     mem_rdata = lhmux_out;
+        dcachemux::lbu:    mem_rdata = lbumux_out;
+        dcachemux::lb:     mem_rdata = lbmux_out;
+        default:           mem_rdata = dcache_rdata;
     endcase
 end
 /*****************************************************************************/

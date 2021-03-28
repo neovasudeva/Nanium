@@ -1,6 +1,5 @@
 import rv32i_types::*;
 import pcmux::*;
-import marmux::*;
 import cmpmux::*;
 import alumux::*;
 import regfilemux::*;

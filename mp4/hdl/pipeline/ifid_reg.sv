@@ -15,7 +15,7 @@ module ifid_reg (
 );
 
 // IF / ID Registers 
-register #(.width=192) ifid_instr_reg (
+register #(.width(192)) ifid_instr_reg (
     .clk    (clk),
     .rst    (ifid_rst),
     .load   (ifid_load),

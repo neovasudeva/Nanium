@@ -17,11 +17,11 @@ module idex_reg(
     input rv32i_word id_rs1_out,
     output rv32i_word idex_rs1_out,
     input rv32i_word id_rs2_out,
-    output rv32i_word idex_rs2_out,
+    output rv32i_word idex_rs2_out
 );
 
 // ID / EX Registers 
-register #(.width=192) idex_ctrl_word_reg (
+register #(.width(192)) idex_ctrl_word_reg (
     .clk    (clk),
     .rst    (idex_rst),
     .load   (idex_load),
@@ -37,7 +37,7 @@ register idex_pc_reg (
     .out    (idex_pc)
 );
 
-register #(.width=20) idex_instr_reg(
+register #(.width(20)) idex_instr_reg(
     .clk    (clk),
     .rst    (idex_rst),
     .load   (idex_load),
