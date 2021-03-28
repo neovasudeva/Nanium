@@ -1,18 +1,9 @@
 `define BAD_MUX_SEL $fatal("%0t %s %0d: Illegal mux select", $time, `__FILE__, `__LINE__)
-`include "pipeline/ex_stage.sv"
-`include "pipeline/exmem_reg.sv"
-`include "pipeline/id_stage.sv"
-`include "pipeline/idex_reg.sv"
-`include "pipeline/ifid_reg.sv"
-`include "pipeline/mem_stage.sv"
-`include "pipeline/memwb_reg.sv"
-`include "pipeline/wb_stage.sv"
 
 import rv32i_types::*;
 import ctrl_types::*;
 import instr_types::*;
 import pcmux::*;
-import marmux::*;
 import cmpmux::*;
 import alumux::*;
 import regfilemux::*;
@@ -35,7 +26,7 @@ module datapath(
     output logic dcache_write,
     output rv32i_word dcache_addr,
     output rv32i_word dcache_wdata,
-    input rv32i_word dcache_rdata,
+    input rv32i_word dcache_rdata
 );
 
 /**************************** LOAD/STALL SIGNALS ******************************/ 
@@ -93,8 +84,6 @@ logic exmem_br_en;
 rv32i_word exmem_alu_out;
 rv32i_word exmem_rs2_out;
 instr_types::instr_t exmem_instruction;
-logic [3:0] dcache_byte_enable;
-rv32i_word dcache_rdata;
 rv32i_word mem_rdata;
 
 // WB signals
@@ -110,10 +99,10 @@ rv32i_word wb_regfilemux_out;
 
 /******************************* PIPELINE REGS *******************************/
 /* Instruction Fetch Registers */
-register if_pc (
+register if_pc_reg (
     .clk    (clk),
     .rst    (pc_rst),
-    .load   (load_pc),
+    .load   (pc_load),
     .in     (pcmux_out),
     .out    (if_pc)
 );
@@ -132,7 +121,7 @@ id_stage idecode(
     .clk                    (clk),
     .ifid_instruction       (ifid_instruction),
     .ifid_pc                (ifid_pc),
-    .memwb_load_regfile     (memwb_load_regfile),
+    .memwb_load_regfile     (memwb_ctrl_word.load_regfile),
     .memwb_rd               (memwb_rd),
     .wb_regfilemux_out      (wb_regfilemux_out),
     .id_ctrl_word           (id_ctrl_word),
@@ -162,7 +151,7 @@ ex_stage execute(
     .idex_ctrl_word     (idex_ctrl_word),
     .idex_pc            (idex_pc),
     .idex_rs1_out       (idex_rs1_out),
-    .idex_rs2_out       (rs2_out)
+    .idex_rs2_out       (idex_rs2_out),
     .ex_alu_out         (ex_alu_out),
     .ex_br_en           (ex_br_en)
 );
@@ -196,12 +185,12 @@ mem_stage memory (
     .dcache_byte_enable (dcache_byte_enable),
     .dcache_read        (dcache_read),
     .dcache_write       (dcache_write),
-    .dcache_add         (dcache_add),
+    .dcache_add         (dcache_addr),
     .dcache_wdata       (dcache_wdata),
     .dcache_rdata       (dcache_rdata),
     .mem_rdata          (mem_rdata)
 
-)
+);
 
 /* Memory Registers */
 memwb_reg memwb_pipe(
@@ -225,7 +214,7 @@ memwb_reg memwb_pipe(
 
 /******************************* LOGIC UNITS *********************************/
 // instruction breakdown logic 
-assign if_instruction.opcode = rv32i_opcode'(icache_rdata[14:12]);
+assign if_instruction.opcode = opcode_t'(icache_rdata[14:12]);
 assign if_instruction.rs1 = icache_rdata[19:15];
 assign if_instruction.rs2 = icache_rdata[24:20];
 assign if_instruction.funct3 = icache_rdata[14:12];
@@ -244,7 +233,7 @@ always_comb begin
         exmem_instruction.opcode == rv32i_types::op_jal || 
         exmem_instruction.opcode == rv32i_types::op_jalr) begin    
         // jal and jalr case
-        if (exmem_instruction.opcode == rv32i_types::jal || exmem_instruction.opcode == rv32i_types::jalr)
+        if (exmem_instruction.opcode == rv32i_types::op_jal || exmem_instruction.opcode == rv32i_types::op_jalr)
             pcmux_out = {exmem_alu_out[31:1], 1'b0};     
         else
             pcmux_out = exmem_alu_out;

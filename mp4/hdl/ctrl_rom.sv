@@ -3,7 +3,6 @@ import rv32i_types::*;
 import ctrl_types::*;
 import instr_types::*;
 import pcmux::*;
-import marmux::*;
 import cmpmux::*;
 import alumux::*;
 import regfilemux::*;
@@ -59,7 +58,7 @@ begin
         /* br */
         op_br: begin
             ctrl.alumux1_sel = alumux::pc_out;
-            ctrl.alumux2_sel = alumux:b_imm;
+            ctrl.alumux2_sel = alumux::b_imm;
             ctrl.aluop = rv32i_types::alu_add;
             ctrl.cmpop = branch_funct3_t'(instruction.funct3);
         end

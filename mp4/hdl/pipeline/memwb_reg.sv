@@ -1,6 +1,6 @@
 import rv32i_types::*;
-import ctrl_types::*;
 import instr_types::*;
+import ctrl_types::*;
 
 module memwb_rg(
     input clk,
