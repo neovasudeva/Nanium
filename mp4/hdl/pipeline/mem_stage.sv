@@ -101,11 +101,9 @@ always_comb begin : WRITE
         endcase
     end
     else if (exmem_instruction.funct3 == rv32i_types::sh) begin
-        unique case (exmem_alu_out[1:0]) 
-            2'b00:  dcache_byte_enable = 4'b0001; 
-            2'b01:  dcache_byte_enable = 4'b0010;
-            2'b10:  dcache_byte_enable = 4'b0100;
-            2'b11:  dcache_byte_enable = 4'b1000;
+        unique case (exmem_alu_out[1]) 
+            1'b0:   dcache_byte_enable = 4'b0011;
+            1'b1:   dcache_byte_enable = 4'b1100;
         endcase
     end
     else 

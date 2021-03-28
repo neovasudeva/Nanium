@@ -85,7 +85,7 @@ Please refer to tb_itf.sv for more information.
 /*********************** End Shadow Memory Assignments ***********************/
 
 // Set this to the proper value
-assign itf.registers = '{default: '0};
+assign itf.registers = dut.datapath.idecode.regfile.data; //'{default: '0};
 
 /*********************** Instantiate your design here ************************/
 /*
@@ -105,7 +105,24 @@ Burst Memory Ports:
 Please refer to tb_itf.sv for more information.
 */
 
-mp4 dut();
+mp4 dut(
+    .clk(itf.clk),
+    .rst(itf.rst),
+
+    .icache_read(itf.inst_read),
+    .icache_write(),
+    .icache_addr(itf.inst_addr),
+    .icache_rdata(itf.inst_rdata),
+    .icache_resp(itf.inst_resp),
+
+    .dcache_byte_enable(itf.data_mbe),
+    .dcache_read(itf.data_read),
+    .dcache_write(itf.data_write),
+    .dcache_addr(itf.data_addr),
+    .dcache_wdata(itf.data_wdata),
+    .dcache_rdata(itf.data_rdata),
+    .dcache_resp(itf.data_resp)
+);
 /***************************** End Instantiation *****************************/
 
 endmodule

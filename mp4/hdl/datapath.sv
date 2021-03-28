@@ -13,12 +13,11 @@ module datapath(
     input rst, 
 
     // icache mem signals
-    output logic [3:0] icache_byte_enable,
     output logic icache_read,
     output logic icache_write,
     output rv32i_word icache_addr,
-    output rv32i_word icache_wdata,
     input rv32i_word icache_rdata,
+    input logic icache_resp,
     
     // dcache mem signals
     output logic [3:0] dcache_byte_enable,
@@ -27,6 +26,7 @@ module datapath(
     output rv32i_word dcache_addr,
     output rv32i_word dcache_wdata,
     input rv32i_word dcache_rdata
+    input logic dcache_resp
 );
 
 /**************************** LOAD/STALL SIGNALS ******************************/ 
@@ -96,6 +96,12 @@ rv32i_word memwb_alu_out;
 instr_types::instr_t memwb_instruction;
 rv32i_word wb_regfilemux_out;
 /*****************************************************************************/
+
+/******************************** MEMORY SIGNALS *****************************/ 
+assign icache_read = 1'b1; // always read, change later
+assign icache_write = 1'b0;
+assign icache_addr = if_pc;
+/*****************************************************************************/ 
 
 /******************************* PIPELINE REGS *******************************/
 /* Instruction Fetch Registers */
@@ -214,7 +220,7 @@ memwb_reg memwb_pipe(
 
 /******************************* LOGIC UNITS *********************************/
 // instruction breakdown logic 
-assign if_instruction.opcode = opcode_t'(icache_rdata[14:12]);
+assign if_instruction.opcode = opcode_t'(icache_rdata[6:0]);
 assign if_instruction.rs1 = icache_rdata[19:15];
 assign if_instruction.rs2 = icache_rdata[24:20];
 assign if_instruction.funct3 = icache_rdata[14:12];

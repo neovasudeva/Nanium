@@ -28,7 +28,7 @@ begin
 
     /* Assign control signals based on opcode */
     case(instruction.opcode)
-        /* op_lui */
+        /* lui */
         op_lui: begin
             ctrl.load_regfile = 1'b1;
             ctrl.regfilemux_sel = regfilemux::u_imm;
@@ -69,11 +69,11 @@ begin
             ctrl.load_regfile = 1'b1;
             ctrl.regfilemux_sel = regfilemux::rdata;
             unique case (instruction.funct3)
-                rv32i_types::lw:    ctrl.rdata_sel = dcachemux::lw;
-                rv32i_types::lhu:   ctrl.rdata_sel = dcachemux::lhu;
-                rv32i_types::lh:    ctrl.rdata_sel = dcachemux::lh;
-                rv32i_types::lbu:   ctrl.rdata_sel = dcachemux::lbu;
                 rv32i_types::lb:    ctrl.rdata_sel = dcachemux::lb;
+                rv32i_types::lh:    ctrl.rdata_sel = dcachemux::lh;
+                rv32i_types::lw:    ctrl.rdata_sel = dcachemux::lw;
+                rv32i_types::lbu:   ctrl.rdata_sel = dcachemux::lbu;
+                rv32i_types::lhu:   ctrl.rdata_sel = dcachemux::lhu;
                 default:            ctrl.rdata_sel = dcachemux::lw;
             endcase
         end
