@@ -14,8 +14,8 @@ typedef struct packed {
     alumux::alumux2_sel_t alumux2_sel;
     cmpmux::cmpmux_sel_t cmpmux_sel;
 	dcachemux::rdata_sel_t rdata_sel;
-    alu_ops aluop;
-	branch_funct3_t cmpop;
+    rv32i_types::alu_ops aluop;
+	rv32i_types::branch_funct3_t cmpop;
 	logic dcache_read;
 	logic dcache_write;
 } ctrl_t;
@@ -25,10 +25,10 @@ endpackage : ctrl_types
 // size = 192
 package instr_types;
 typedef struct packed {
-	opcode_t opcode;
-	rv32i_reg rs1;
-	rv32i_reg rs2;
-	rv32i_reg rd;
+	rv32i_types::opcode_t opcode;
+	rv32i_types::rv32i_reg rs1;
+	rv32i_types::rv32i_reg rs2;
+	rv32i_types::rv32i_reg rd;
 	logic [2:0] funct3;
 	logic [6:0] funct7;
 	logic [31:0] i_imm;

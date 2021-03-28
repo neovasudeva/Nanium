@@ -15,8 +15,8 @@ module ex_stage(
     input rv32i_word idex_rs1_out,
     input rv32i_word idex_rs2_out,
 
-    output ex_alu_out,
-    output ex_br_en
+    output rv32i_word ex_alu_out,
+    output logic ex_br_en
 );
 
 /******************************** SIGNALS ************************************/
@@ -64,7 +64,7 @@ cmp CMP(
     .cmpop  (idex_ctrl_word.cmpop),
     .a      (idex_rs1_out),
     .b      (cmpmux_out),
-    .f      (ex_br_en)
+    .br_en  (ex_br_en)
 );
 /*****************************************************************************/
 

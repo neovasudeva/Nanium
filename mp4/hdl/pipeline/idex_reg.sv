@@ -21,7 +21,7 @@ module idex_reg(
 );
 
 // ID / EX Registers 
-register #(.width(192)) idex_ctrl_word_reg (
+register #(.width(20)) idex_ctrl_word_reg (
     .clk    (clk),
     .rst    (idex_rst),
     .load   (idex_load),
@@ -37,7 +37,7 @@ register idex_pc_reg (
     .out    (idex_pc)
 );
 
-register #(.width(20)) idex_instr_reg(
+register #(.width(192)) idex_instr_reg(
     .clk    (clk),
     .rst    (idex_rst),
     .load   (idex_load),

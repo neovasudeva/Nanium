@@ -35,9 +35,11 @@ module mem_stage(
     output rv32i_word mem_rdata
 );
 
-// dcache read and write
+// dcache signals
 assign dcache_read = exmem_ctrl_word.dcache_read;
 assign dcache_write = exmem_ctrl_word.dcache_write;
+assign dcache_addr = {exmem_alu_out[31:2], 2'b0};
+assign dcache_wdata = exmem_rs2_out;	// change later
 
 /*********************************** SIGNALS *********************************/
 rv32i_word lhumux_out;
@@ -68,6 +70,7 @@ always_comb begin : READ
         2'b01:  lbumux_out = {24'b0, dcache_rdata[15:8]};    
         2'b10:  lbumux_out = {24'b0, dcache_rdata[23:16]};
         2'b11:  lbumux_out = {24'b0, dcache_rdata[31:24]};
+		default: lbumux_out = {exmem_alu_out[31:2], 2'b0};
     endcase
 
     // lb mux
@@ -76,6 +79,7 @@ always_comb begin : READ
         2'b01:  lbmux_out = {{24{dcache_rdata[15]}}, dcache_rdata[15:8]};    
         2'b10:  lbmux_out = {{24{dcache_rdata[23]}}, dcache_rdata[23:16]};
         2'b11:  lbmux_out = {{24{dcache_rdata[31]}}, dcache_rdata[31:24]};
+		default: lbmux_out = {exmem_alu_out[31:2], 2'b0};
     endcase
 
     // rdata
@@ -98,12 +102,14 @@ always_comb begin : WRITE
             2'b01:  dcache_byte_enable = 4'b0010;
             2'b10:  dcache_byte_enable = 4'b0100;
             2'b11:  dcache_byte_enable = 4'b1000;
+			default: dcache_byte_enable = 4'b0000;
         endcase
     end
     else if (exmem_instruction.funct3 == rv32i_types::sh) begin
         unique case (exmem_alu_out[1]) 
             1'b0:   dcache_byte_enable = 4'b0011;
             1'b1:   dcache_byte_enable = 4'b1100;
+			default: dcache_byte_enable = 4'b0000;
         endcase
     end
     else 

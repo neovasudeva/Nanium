@@ -9,3 +9,9 @@
 *.bak
 
 **/output_files
+
+**/incremental_db
+
+**/simulation
+
+*.rpt

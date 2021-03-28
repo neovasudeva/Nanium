@@ -2,7 +2,7 @@ import rv32i_types::*;
 import instr_types::*;
 import ctrl_types::*;
 
-module memwb_rg(
+module memwb_reg(
     input clk,
     input memwb_rst,
     input memwb_load,
@@ -71,4 +71,4 @@ register memwb_pc_reg(
     .out    (memwb_pc)
 );
 
-endmodule : memwb_rg
+endmodule : memwb_reg

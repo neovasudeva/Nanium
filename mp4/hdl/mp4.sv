@@ -6,7 +6,7 @@ module mp4(
     output logic icache_write,
     output logic [31:0] icache_addr,
     input logic [31:0] icache_rdata,
-    output logic icache_resp,
+    input logic icache_resp,
 
     output logic [3:0] dcache_byte_enable,
     output logic dcache_read,

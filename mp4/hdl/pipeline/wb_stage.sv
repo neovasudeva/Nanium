@@ -4,8 +4,10 @@ import instr_types::*;
 import regfilemux::*;
 
 module wb_stage(
+	/* not needed
     input clk,
     input rst,
+	*/
     input instr_types::instr_t memwb_instruction,
     input ctrl_types::ctrl_t memwb_ctrl_word,
 

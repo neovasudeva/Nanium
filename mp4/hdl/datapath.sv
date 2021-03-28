@@ -25,7 +25,7 @@ module datapath(
     output logic dcache_write,
     output rv32i_word dcache_addr,
     output rv32i_word dcache_wdata,
-    input rv32i_word dcache_rdata
+    input rv32i_word dcache_rdata,
     input logic dcache_resp
 );
 
@@ -79,7 +79,6 @@ logic ex_br_en;
 // MEM signals (also from EX/MEM regs)
 ctrl_types::ctrl_t exmem_ctrl_word;
 rv32i_word exmem_pc;
-rv32i_reg exmem_rd;
 logic exmem_br_en;
 rv32i_word exmem_alu_out;
 rv32i_word exmem_rs2_out;
@@ -91,7 +90,6 @@ ctrl_types::ctrl_t memwb_ctrl_word;
 rv32i_word memwb_pc;
 logic memwb_br_en;
 rv32i_word memwb_rdata;
-rv32i_reg memwb_rd;
 rv32i_word memwb_alu_out;
 instr_types::instr_t memwb_instruction;
 rv32i_word wb_regfilemux_out;
@@ -128,7 +126,7 @@ id_stage idecode(
     .ifid_instruction       (ifid_instruction),
     .ifid_pc                (ifid_pc),
     .memwb_load_regfile     (memwb_ctrl_word.load_regfile),
-    .memwb_rd               (memwb_rd),
+    .memwb_rd               (memwb_instruction.rd),
     .wb_regfilemux_out      (wb_regfilemux_out),
     .id_ctrl_word           (id_ctrl_word),
     .id_rs1_out             (id_rs1_out),
@@ -187,11 +185,11 @@ mem_stage memory (
     .exmem_pc           (exmem_pc),
     .exmem_br_en        (exmem_br_en),
     .exmem_alu_out      (exmem_alu_out),
-    .exmem_rs2_ou       (exmem_rs2_out),
+    .exmem_rs2_out      (exmem_rs2_out),
     .dcache_byte_enable (dcache_byte_enable),
     .dcache_read        (dcache_read),
     .dcache_write       (dcache_write),
-    .dcache_add         (dcache_addr),
+    .dcache_addr        (dcache_addr),
     .dcache_wdata       (dcache_wdata),
     .dcache_rdata       (dcache_rdata),
     .mem_rdata          (mem_rdata)
@@ -216,6 +214,16 @@ memwb_reg memwb_pipe(
     .exmem_pc           (exmem_pc),
     .memwb_pc           (memwb_pc)
 );
+
+wb_stage writeback (
+    .memwb_instruction	(memwb_instruction),
+    .memwb_ctrl_word	(memwb_ctrl_word),
+    .memwb_alu_out		(memwb_alu_out),
+    .memwb_br_en		(memwb_br_en),
+    .memwb_rdata		(memwb_rdata),
+    .memwb_pc			(memwb_pc),
+    .wb_regfilemux_out	(wb_regfilemux_out)
+);
 /*****************************************************************************/
 
 /******************************* LOGIC UNITS *********************************/
@@ -223,6 +231,7 @@ memwb_reg memwb_pipe(
 assign if_instruction.opcode = opcode_t'(icache_rdata[6:0]);
 assign if_instruction.rs1 = icache_rdata[19:15];
 assign if_instruction.rs2 = icache_rdata[24:20];
+assign if_instruction.rd = icache_rdata[11:7];
 assign if_instruction.funct3 = icache_rdata[14:12];
 assign if_instruction.funct7 = icache_rdata[31:25];
 assign if_instruction.i_imm = {{21{icache_rdata[31]}}, icache_rdata[30:20]};
