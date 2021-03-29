@@ -103,7 +103,7 @@ assign icache_addr = if_pc;
 
 /******************************* PIPELINE REGS *******************************/
 /* Instruction Fetch Registers */
-register if_pc_reg (
+pc_register if_pc_reg (
     .clk    (clk),
     .rst    (pc_rst),
     .load   (pc_load),
