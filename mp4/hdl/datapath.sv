@@ -123,6 +123,7 @@ ifid_reg ifid_pipe (
 
 id_stage idecode(
     .clk                    (clk),
+	.rst					(rst),
     .ifid_instruction       (ifid_instruction),
     .ifid_pc                (ifid_pc),
     .memwb_load_regfile     (memwb_ctrl_word.load_regfile),
