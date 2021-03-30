@@ -25,7 +25,7 @@ bit f;
 // This section not required until CP2
 
 assign rvfi.commit = 0; // Set high when a valid instruction is modifying regfile or PC
-assign rvfi.halt = 0;   // Set high when you detect an infinite loop
+assign rvfi.halt = (dut.datapath.idecode.regfile.data[1] == 32'h600d600d);   // Set high when you detect an infinite loop
 initial rvfi.order = 0;
 always @(posedge itf.clk iff rvfi.commit) rvfi.order <= rvfi.order + 1; // Modify for OoO
 
@@ -85,7 +85,7 @@ Please refer to tb_itf.sv for more information.
 /*********************** End Shadow Memory Assignments ***********************/
 
 // Set this to the proper value
-assign itf.registers = dut.datapath.idecode.regs.data; //'{default: '0};
+assign itf.registers = dut.datapath.idecode.regfile.data; //'{default: '0};
 
 /*********************** Instantiate your design here ************************/
 /*

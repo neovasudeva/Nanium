@@ -23,7 +23,7 @@ ctrl_rom control (
 );
 
 // regfile
-regfile regs (
+regfile regfile (
     .clk    (clk),
     .rst    (rst),
     .load   (memwb_load_regfile),
