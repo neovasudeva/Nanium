@@ -10,6 +10,8 @@ module forward (
     input instr_types::instr_t idex_instruction,
     input instr_types::instr_t exmem_instruction,
     input instr_types::instr_t memwb_instruction,
+	input logic exmem_load_regfile,
+	input logic memwb_load_regfile,
 
     output rs1mux_sel_t rs1mux_sel,
     output rs2mux_sel_t rs2mux_sel,
@@ -18,11 +20,9 @@ module forward (
 );
 
 /**************************** Intermediary Signals ******************************/ 
-logic idex_rd, idex_rs1, idex_rs2, idex_opcode;
-logic exmem_rd, exmem_rs2, exmem_opcode;
-logic memwb_rd, memwb_opcode;
+rv32i_reg idex_rs1, idex_rs2, exmem_rd, exmem_rs2, memwb_rd;
+opcode_t idex_opcode, exmem_opcode;
 
-assign idex_rd = idex_instruction.rd;
 assign idex_rs1 = idex_instruction.rs1;
 assign idex_rs2 = idex_instruction.rs2;
 assign idex_opcode = idex_instruction.opcode;
@@ -30,20 +30,19 @@ assign exmem_rd = exmem_instruction.rd;
 assign exmem_rs2 = exmem_instruction.rs2;
 assign exmem_opcode = exmem_instruction.opcode;
 assign memwb_rd = memwb_instruction.rd;
-assign memwb_opcode = memwb_instruction.opcode;
 /********************************************************************************/ 
 
 /***************************** Forward Stall Logic ******************************/ 
 logic fstall_rs1;
 logic fstall_rs2;
-assign fstall_rs1 = (exmem_rd == idex_rs1) && 
+assign fstall_rs1 = (exmem_rd == idex_rs1) &&
     (idex_opcode == rv32i_types::op_reg || 
     idex_opcode == rv32i_types::op_imm || 
     idex_opcode == rv32i_types::op_br || 
     idex_opcode == rv32i_types::op_jalr || 
     idex_opcode == rv32i_types::op_store || 
-    idex_opcode == rv32i_types::op_load ||);
-assign fstall_rs2 = (exmem_rd == idex_rs2) && 
+    idex_opcode == rv32i_types::op_load);
+assign fstall_rs2 = (exmem_rd == idex_rs2) &&
     (idex_opcode == rv32i_types::op_reg || 
     idex_opcode == rv32i_types::op_br);
 
@@ -53,7 +52,7 @@ assign forward_stall = (fstall_rs1 || fstall_rs2) && exmem_opcode == rv32i_types
 /****************************** Forwarding Logic ********************************/ 
 always_comb begin
     /* RS1 Forwarding logic */
-    if (idex_rs1 == exmem_rd && exmem_instruction.load_regfile == 1'b1) begin
+	if (idex_rs1 == exmem_rd && exmem_load_regfile == 1'b1) begin
         // u_imm (lui)
         if (idex_opcode == rv32i_types::op_lui)
             rs1mux_sel = rs1mux::u_imm;
@@ -73,7 +72,7 @@ always_comb begin
         rs1mux_sel = rs1mux::rs1_out;
 
     /* RS2 Forwarding logic */
-    if (idex_rs2 == exmem_rd && exmem_instruction.load_regfile == 1'b1) begin
+	if (idex_rs2 == exmem_rd && exmem_load_regfile == 1'b1) begin
         // u_imm (lui)
         if (idex_opcode == rv32i_types::op_lui)
             rs2mux_sel = rs2mux::u_imm;

@@ -54,27 +54,27 @@ endpackage
 /* for forwarding */
 package rs1mux;
 typedef enum bit [2:0] {
-    rs1_out        = 3'b000;
-    br_en          = 3'b001;
-    u_imm          = 3'b010;
-    alu_out        = 3'b011;
-    regfilemux_out = 3'b100;
+    rs1_out        = 3'b000,
+    br_en          = 3'b001,
+    u_imm          = 3'b010,
+    alu_out        = 3'b011,
+    regfilemux_out = 3'b100
 } rs1mux_sel_t;
 endpackage
 
 package rs2mux;
 typedef enum bit [2:0] {
-    rs2_out        = 3'b000;
-    br_en          = 3'b001;
-    u_imm          = 3'b010;
-    alu_out        = 3'b011;
-    regfilemux_out = 3'b100;
+    rs2_out        = 3'b000,
+    br_en          = 3'b001,
+    u_imm          = 3'b010,
+    alu_out        = 3'b011,
+    regfilemux_out = 3'b100
 } rs2mux_sel_t;
 endpackage
 
 package dcacheforwardmux;
 typedef enum bit {
-    rs2_out        = 1'b0;
-    regfilemux_out = 1'b1;
+    rs2_out        = 1'b0,
+    regfilemux_out = 1'b1
 } dcacheforwardmux_sel_t;
 endpackage

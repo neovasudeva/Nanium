@@ -7,6 +7,9 @@ import pcmux::*;
 import cmpmux::*;
 import alumux::*;
 import regfilemux::*;
+import rs1mux::*;
+import rs2mux::*;
+import dcacheforwardmux::*;
 
 module datapath(
     input clk, 
@@ -29,34 +32,6 @@ module datapath(
     input logic dcache_resp
 );
 
-/**************************** LOAD/STALL SIGNALS ******************************/ 
-// load and reset signals to pipeline regs
-logic pc_load, ifid_load, idex_load, exmem_load, memwb_load;
-logic pc_rst, ifid_rst, idex_rst, exmem_rst, memwb_rst;
-
-// stall and rst signals
-logic cache_stall;
-logic branch_rst;
-logic forward_stall;
-assign cache_stall = ((dcache_read == 1'b1 || dcache_write == 1'b1) && dcache_resp == 1'b0) || 
-    ((icache_read == 1'b1 || icache_write == 1'b1) && icache_resp == 1'b0);
-assign branch_rst = (exmem_br_en == 1'b1 && exmem_instruction.opcode == rv32i_types::op_br) || 
-    (exmem_instruction.opcode == rv32i_types::jal) || 
-    (exmem_instruction.opcode == rv32i_types::jalr);
-
-// loads and reset
-assign pc_load = ~forward_stall && ~cache_stall;
-assign ifid_load = ~forward_stall && ~cache_stall;
-assign idex_load = ~forward_stall && ~cache_stall;
-assign exmem_load = ~cache_stall;
-assign memwb_load = ~cache_stall; 
-assign pc_rst = rst;
-assign ifid_rst = rst || br_rst;
-assign idex_rst = rst || br_rst;
-assign exmem_rst = rst || forward_stall;
-assign memwb_rst = rst;
-/*****************************************************************************/
-
 /****************************** PIPELINE SIGNALS *****************************/ 
 // pcmux
 rv32i_word pcmux_out;
@@ -68,8 +43,6 @@ instr_types::instr_t if_instruction;
 // ID signals (also from IF/ID regs)
 instr_types::instr_t ifid_instruction;
 rv32i_word ifid_pc;
-rv32i_reg ifid_rs1;
-rv32i_reg ifid_rs2;
 ctrl_types::ctrl_t id_ctrl_word;
 rv32i_word id_rs1_out;
 rv32i_word id_rs2_out;
@@ -111,6 +84,35 @@ dcacheforwardmux_sel_t dcacheforwardmux_sel;
 rv32i_word rs1mux_out;
 rv32i_word rs2mux_out;
 rv32i_word dcacheforwardmux_out;
+/*****************************************************************************/
+
+/**************************** LOAD/STALL SIGNALS ******************************/ 
+// load and reset signals to pipeline regs
+logic pc_load, ifid_load, idex_load, exmem_load, memwb_load;
+logic pc_rst, ifid_rst, idex_rst, exmem_rst, memwb_rst;
+
+// stall and rst signals
+logic forward_stall;
+//logic cache_stall;
+//logic branch_rst;
+//assign cache_stall = ((dcache_read == 1'b1 || dcache_write == 1'b1) && dcache_resp == 1'b0) || 
+//    ((icache_read == 1'b1 || icache_write == 1'b1) && icache_resp == 1'b0);
+//assign branch_rst = (exmem_br_en == 1'b1 && exmem_instruction.opcode == rv32i_types::op_br) || 
+//    (exmem_instruction.opcode == rv32i_types::op_jal) || 
+//    (exmem_instruction.opcode == rv32i_types::op_jalr);
+
+
+// loads and reset
+assign pc_load = ~forward_stall; //&& ~cache_stall;
+assign ifid_load = ~forward_stall;// && ~cache_stall;
+assign idex_load = ~forward_stall;// && ~cache_stall;
+assign exmem_load = 1'b1; //~cache_stall;
+assign memwb_load = 1'b1; //~cache_stall; 
+assign pc_rst = rst;
+assign ifid_rst = rst; //|| branch_rst;
+assign idex_rst = rst; //|| branch_rst;
+assign exmem_rst = rst || forward_stall;
+assign memwb_rst = rst;
 /*****************************************************************************/
 
 /******************************** MEMORY SIGNALS *****************************/ 
@@ -259,11 +261,13 @@ assign if_instruction.j_imm = {{12{icache_rdata[31]}}, icache_rdata[19:12], icac
 assign if_instruction.b_imm = {{20{icache_rdata[31]}}, icache_rdata[7], icache_rdata[30:25], icache_rdata[11:8], 1'b0};
 assign if_instruction.s_imm = {{21{icache_rdata[31]}}, icache_rdata[30:25], icache_rdata[11:7]};
 
-// forwarding module
+// forwarding unit
 forward forwarding_unit (
     .idex_instruction     (idex_instruction),
-    .exmem_instruction    (idex_instruction),
+    .exmem_instruction    (exmem_instruction),
     .memwb_instruction    (memwb_instruction),
+	.exmem_load_regfile   (exmem_ctrl_word.load_regfile),
+	.memwb_load_regfile	  (memwb_ctrl_word.load_regfile),
     .rs1mux_sel           (rs1mux_sel),
     .rs2mux_sel           (rs2mux_sel),
     .dcacheforwardmux_sel (dcacheforwardmux_sel),
