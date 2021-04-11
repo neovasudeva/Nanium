@@ -27,7 +27,6 @@ not_taken_branches:
 
     beq x0, x0, backward_br_nt         # Take
 
-
 forwarding_tests:
     # Forwarding x0 test
     add x3, x3, 1
@@ -43,14 +42,14 @@ forwarding_tests:
 
     bne x3, x4, oof                    # Also, test branching on 2 forwarded values :)
 
-    ## MEM -> EX forwarding with stall
+    # MEM -> EX forwarding with stall
     lw x1, NOPE
     lw x1, A
     add x5, x1, x0                     # Necessary forwarding stall
 
     bne x5, x1, oof
 
-    ## WB -> MEM forwarding test
+    # WB -> MEM forwarding test
     add x3, x1, 1 #2
     la x8, TEST
     sw  x3, 0(x8)
@@ -59,27 +58,27 @@ forwarding_tests:
     bne x4, x3, oof
 
 
-    ## Half word forwarding test
+    # Half word forwarding test
     lh  x2, FULL
     add x3, x0, -1
 
     bne x3, x2, oof
 
     ## Cache miss control test
-    add x4, x0, 3
-    lw  x2, B                          # Cache miss
-    add x3, x2, 1                      # Try to forward from cache miss load
+    #add x4, x0, 3
+    #lw  x2, B                          # Cache miss
+    #add x3, x2, 1                      # Try to forward from cache miss load
 
-    bne x4, x3, oof
+    #bne x4, x3, oof
 
     ## Forwarding contention test
-    add x2, x0, 1
-    add x2, x0, 2
-    add x3, x2, 1
+    #add x2, x0, 1
+    #add x2, x0, 2
+    #add x3, x2, 1
 
-    beq x3, x2, oof
+    #beq x3, x2, oof
 
-    lw x7, GOOD
+    #lw x7, GOOD
 
 halt:
     beq x0, x0, halt
@@ -92,7 +91,7 @@ oof:
 
 backward_br_nt:
     beq x0, x1, oof                    # Don't take
-
+	
     beq x0, x0, forwarding_tests       # Take
 
 

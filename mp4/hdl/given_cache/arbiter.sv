@@ -44,30 +44,35 @@ end
 // next state logic 
 always_comb begin
     // default
-    next_state = IDLE;
+    next_state = state;
 
-    unique case (state):
+    unique case (state)
         IDLE: begin
-            if (ipmem_read == 1'b1 || ipmem_write == 1'b1)
+            if (ipmem_read || ipmem_write)
                 next_state = ICACHE;
-            else if (dpmem_read == 1'b1 || dpmem_write == 1'b1)
+            else if (dpmem_read || dpmem_write)
                 next_state = DCACHE;
+				/*
             else
-                next_state = IDLE;
+                next_state = IDLE;*/
         end
 
         ICACHE: begin
-            if ((ipmem_read == 1'b1 || ipmem_write == 1'b1) &&
-                (pmem_resp == 1'b0))
+		/*
+            if ((ipmem_read || ipmem_write) && ~pmem_resp)
                 next_state = ICACHE;
-            else if ((dmem_read == 1'b1 || dpmem_write == 1'b1) &&
+            else if ((dpmem_read == 1'b1 || dpmem_write == 1'b1) &&
                 (pmem_resp == 1'b1))
                 next_state = DCACHE;
             else 
                 next_state = IDLE;
+				*/
+			if (~ipmem_read & (dpmem_read | dpmem_write)) next_state = DCACHE;
+            else if (~(ipmem_read | dpmem_read | dpmem_write)) next_state = IDLE;
         end
 
         DCACHE: begin
+		/*
             if ((dpmem_read == 1'b1 || dpmem_write == 1'b1) &&
                 (pmem_resp == 1'b0))
                 next_state = DCACHE;
@@ -76,7 +81,12 @@ always_comb begin
                 next_state = ICACHE;
             else
                 next_state = IDLE;
+				*/
+			if (~(dpmem_read | dpmem_write) & ipmem_read) next_state = ICACHE;
+            else if (~(ipmem_read | dpmem_read | dpmem_write)) next_state = IDLE;
         end
+		
+		default: next_state = IDLE;
     endcase
 end
 

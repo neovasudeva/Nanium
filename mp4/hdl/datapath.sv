@@ -93,21 +93,21 @@ logic pc_rst, ifid_rst, idex_rst, exmem_rst, memwb_rst;
 
 // stall and rst signals
 logic forward_stall;
-//logic cache_stall;
+logic cache_stall;
 logic branch_rst;
-//assign cache_stall = ((dcache_read == 1'b1 || dcache_write == 1'b1) && dcache_resp == 1'b0) || 
-//    ((icache_read == 1'b1 || icache_write == 1'b1) && icache_resp == 1'b0);
+assign cache_stall = ((dcache_read == 1'b1 || dcache_write == 1'b1) && dcache_resp == 1'b0) || 
+    ((icache_read == 1'b1 || icache_write == 1'b1) && icache_resp == 1'b0);
 assign branch_rst = (exmem_br_en == 1'b1 && exmem_instruction.opcode == rv32i_types::op_br) || 
     (exmem_instruction.opcode == rv32i_types::op_jal) || 
     (exmem_instruction.opcode == rv32i_types::op_jalr);
 
 
 // loads and reset
-assign pc_load = ~forward_stall; //&& ~cache_stall;
-assign ifid_load = ~forward_stall;// && ~cache_stall;
-assign idex_load = ~forward_stall;// && ~cache_stall;
-assign exmem_load = 1'b1; //~cache_stall;
-assign memwb_load = 1'b1; //~cache_stall; 
+assign pc_load = ~forward_stall && ~cache_stall;
+assign ifid_load = ~forward_stall && ~cache_stall;
+assign idex_load = ~forward_stall && ~cache_stall;
+assign exmem_load = ~cache_stall;
+assign memwb_load = ~cache_stall; 
 assign pc_rst = rst;
 assign ifid_rst = rst || branch_rst;
 assign idex_rst = rst || branch_rst;
