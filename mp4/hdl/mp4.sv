@@ -13,7 +13,6 @@ module mp4(
 
 /****************************** MEMORY SIGNALS *****************************/ 
 logic icache_read;
-logic icache_write;
 logic [31:0] icache_addr;
 logic [31:0] icache_rdata;
 logic icache_resp;

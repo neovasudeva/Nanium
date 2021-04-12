@@ -30,6 +30,10 @@ module arbiter (
 /**************************** STATE/MUX SIGNALS ******************************/ 
 // states
 enum {IDLE, DCACHE, ICACHE} next_state, state;
+logic icache_request, dcache_request;
+
+assign icache_request = ipmem_read | ipmem_write;
+assign dcache_request = dpmem_read | dpmem_write;
 /*****************************************************************************/
 
 /******************************* STATE MACHINE *******************************/ 
@@ -45,48 +49,30 @@ end
 always_comb begin
     // default
     next_state = state;
-
     unique case (state)
         IDLE: begin
-            if (ipmem_read || ipmem_write)
+            // prioritize instruction cache
+            if (icache_request)
                 next_state = ICACHE;
-            else if (dpmem_read || dpmem_write)
+            else if (dcache_request)
                 next_state = DCACHE;
-				/*
-            else
-                next_state = IDLE;*/
         end
 
         ICACHE: begin
-		/*
-            if ((ipmem_read || ipmem_write) && ~pmem_resp)
-                next_state = ICACHE;
-            else if ((dpmem_read == 1'b1 || dpmem_write == 1'b1) &&
-                (pmem_resp == 1'b1))
-                next_state = DCACHE;
-            else 
-                next_state = IDLE;
-				*/
-			if (~ipmem_read & (dpmem_read | dpmem_write)) next_state = DCACHE;
-            else if (~(ipmem_read | dpmem_read | dpmem_write)) next_state = IDLE;
+            if (~icache_request) begin
+                if (dcache_request) next_state = DCACHE;
+                else next_state = IDLE;
+            end
         end
 
         DCACHE: begin
-		/*
-            if ((dpmem_read == 1'b1 || dpmem_write == 1'b1) &&
-                (pmem_resp == 1'b0))
-                next_state = DCACHE;
-            else if ((ipmem_read == 1'b1 || ipmem_write == 1'b1) &&
-                (pmem_resp == 1'b1))
-                next_state = ICACHE;
-            else
-                next_state = IDLE;
-				*/
-			if (~(dpmem_read | dpmem_write) & ipmem_read) next_state = ICACHE;
-            else if (~(ipmem_read | dpmem_read | dpmem_write)) next_state = IDLE;
+            if (~dcache_request) begin
+                if (icache_request) next_state = ICACHE;
+                else next_state = IDLE;
+            end
         end
-		
-		default: next_state = IDLE;
+
+		default: ;
     endcase
 end
 
@@ -103,8 +89,7 @@ always_comb begin
     dpmem_rdata = 256'b0;
 
     unique case (state)
-        IDLE: begin
-        end
+        IDLE: ;
 
         ICACHE: begin
             pmem_write = ipmem_write;

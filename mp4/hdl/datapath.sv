@@ -17,7 +17,6 @@ module datapath(
 
     // icache mem signals
     output logic icache_read,
-    output logic icache_write,
     output rv32i_word icache_addr,
     input rv32i_word icache_rdata,
     input logic icache_resp,
@@ -95,11 +94,11 @@ logic pc_rst, ifid_rst, idex_rst, exmem_rst, memwb_rst;
 logic forward_stall;
 logic cache_stall;
 logic branch_rst;
-assign cache_stall = ((dcache_read == 1'b1 || dcache_write == 1'b1) && dcache_resp == 1'b0) || 
-    ((icache_read == 1'b1 || icache_write == 1'b1) && icache_resp == 1'b0);
+assign cache_stall = ((dcache_read || dcache_write) && ~dcache_resp) || 
+                     ((icache_read) && ~icache_resp);
 assign branch_rst = (exmem_br_en == 1'b1 && exmem_instruction.opcode == rv32i_types::op_br) || 
-    (exmem_instruction.opcode == rv32i_types::op_jal) || 
-    (exmem_instruction.opcode == rv32i_types::op_jalr);
+                    (exmem_instruction.opcode == rv32i_types::op_jal) || 
+                    (exmem_instruction.opcode == rv32i_types::op_jalr);
 
 
 // loads and reset
@@ -117,7 +116,6 @@ assign memwb_rst = rst;
 
 /******************************** MEMORY SIGNALS *****************************/ 
 assign icache_read = 1'b1; // always read, change later
-assign icache_write = 1'b0;
 assign icache_addr = if_pc;
 /*****************************************************************************/ 
 
@@ -278,9 +276,7 @@ forward forwarding_unit (
 /******************************** Muxes **************************************/
 always_comb begin
     // pcmux
-    if ((exmem_br_en && exmem_instruction.opcode == rv32i_types::op_br) || 
-        exmem_instruction.opcode == rv32i_types::op_jal || 
-        exmem_instruction.opcode == rv32i_types::op_jalr) begin    
+    if (branch_rst) begin    
         // jal and jalr case
         if (exmem_instruction.opcode == rv32i_types::op_jal || exmem_instruction.opcode == rv32i_types::op_jalr)
             pcmux_out = {exmem_alu_out[31:1], 1'b0};     
