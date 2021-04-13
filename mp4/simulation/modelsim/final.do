@@ -10,6 +10,7 @@ add wave -noupdate /mp4_tb/f
 add wave -noupdate /mp4_tb/f
 add wave -noupdate /mp4_tb/f
 add wave -noupdate /mp4_tb/f
+add wave -noupdate /mp4_tb/f
 add wave -noupdate /mp4_tb/dut/clk
 add wave -noupdate /mp4_tb/dut/rst
 add wave -noupdate -expand -group Stalls/Forwards /mp4_tb/dut/datapath/cache_stall
@@ -17,6 +18,7 @@ add wave -noupdate -expand -group Stalls/Forwards /mp4_tb/dut/datapath/branch_rs
 add wave -noupdate -expand -group Stalls/Forwards /mp4_tb/dut/datapath/forward_stall
 add wave -noupdate -expand -group Stalls/Forwards /mp4_tb/dut/datapath/forwarding_unit/fstall_rs1
 add wave -noupdate -expand -group Stalls/Forwards /mp4_tb/dut/datapath/forwarding_unit/fstall_rs2
+add wave -noupdate /mp4_tb/dut/datapath/pcmux_out
 add wave -noupdate -expand -group IF /mp4_tb/dut/datapath/pc_rst
 add wave -noupdate -expand -group IF /mp4_tb/dut/datapath/pc_load
 add wave -noupdate -expand -group IF /mp4_tb/dut/datapath/if_pc
@@ -98,7 +100,7 @@ add wave -noupdate -expand -group CA-MEM /mp4_tb/dut/caches/pmem_wdata
 add wave -noupdate -expand -group CA-MEM /mp4_tb/dut/caches/pmem_rdata
 add wave -noupdate -expand -group CA-MEM /mp4_tb/dut/caches/pmem_resp
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {3532344 ps} 0}
+WaveRestoreCursors {{Cursor 1} {3539062 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 360
 configure wave -valuecolwidth 100

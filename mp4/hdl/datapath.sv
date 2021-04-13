@@ -102,7 +102,7 @@ assign branch_rst = (exmem_br_en == 1'b1 && exmem_instruction.opcode == rv32i_ty
 
 
 // loads and reset
-assign pc_load = ~forward_stall && ~cache_stall;
+assign pc_load = branch_rst? 1'b1 : ~forward_stall && ~cache_stall;
 assign ifid_load = ~forward_stall && ~cache_stall;
 assign idex_load = ~forward_stall && ~cache_stall;
 assign exmem_load = ~cache_stall;
