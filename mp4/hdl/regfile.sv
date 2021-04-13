@@ -28,6 +28,12 @@ always_comb
 begin
     reg_a = src_a ? data[src_a] : 0;
     reg_b = src_b ? data[src_b] : 0;
+	
+	// transparent regfile for ID/WB hazards
+	if (src_a && load && (src_a == dest)) 
+        reg_a = in;
+    if (src_b && load && (src_b == dest)) 
+        reg_b = in;
 end
 
 endmodule : regfile

@@ -11,3 +11,7 @@
 **/simulation
 
 *.rpt
+
+*.swp
+
+./mp4/bin/rv_load_memory.sh

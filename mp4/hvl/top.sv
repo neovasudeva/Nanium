@@ -25,7 +25,9 @@ bit f;
 // This section not required until CP2
 
 assign rvfi.commit = 0; // Set high when a valid instruction is modifying regfile or PC
-assign rvfi.halt = (dut.datapath.idecode.regfile.data[1] == 32'h600d600d);   // Set high when you detect an infinite loop
+assign rvfi.halt = (dut.datapath.memwb_br_en == 1'b1 
+	&& dut.datapath.memwb_instruction.opcode == 7'b1100011
+	&& dut.datapath.memwb_alu_out == dut.datapath.memwb_pc);   // Set high when you detect an infinite loop
 initial rvfi.order = 0;
 always @(posedge itf.clk iff rvfi.commit) rvfi.order <= rvfi.order + 1; // Modify for OoO
 
@@ -81,11 +83,25 @@ dcache signals:
 
 Please refer to tb_itf.sv for more information.
 */
+//assign itf.inst_read = dut.icache_read;
+//assign itf.inst_addr = dut.icache_addr;
+//assign itf.inst_resp = dut.icache_resp;
+//assign itf.inst_rdata = dut.icache_rdata;
+//
+//assign itf.data_read = dut.dcache_read;
+//assign itf.data_write = dut.dcache_write;
+//assign itf.data_mbe = dut.dcache_byte_enable;
+//assign itf.data_addr = dut.dcache_addr;
+//assign itf.data_wdata = dut.dcache_wdata;
+//assign itf.data_resp = dut.dcache_resp;
+//assign itf.data_rdata = dut.dcache_rdata;
+
 
 /*********************** End Shadow Memory Assignments ***********************/
 
 // Set this to the proper value
-assign itf.registers = dut.datapath.idecode.regfile.data; //'{default: '0};
+assign itf.registers = dut.datapath.idecode.regfile.data; 
+
 
 /*********************** Instantiate your design here ************************/
 /*
@@ -109,19 +125,12 @@ mp4 dut(
     .clk(itf.clk),
     .rst(itf.rst),
 
-    .icache_read(itf.inst_read),
-    .icache_write(),
-    .icache_addr(itf.inst_addr),
-    .icache_rdata(itf.inst_rdata),
-    .icache_resp(itf.inst_resp),
-
-    .dcache_byte_enable(itf.data_mbe),
-    .dcache_read(itf.data_read),
-    .dcache_write(itf.data_write),
-    .dcache_addr(itf.data_addr),
-    .dcache_wdata(itf.data_wdata),
-    .dcache_rdata(itf.data_rdata),
-    .dcache_resp(itf.data_resp)
+    .pmem_read(itf.mem_read),
+	.pmem_write(itf.mem_write),
+	.pmem_address(itf.mem_addr),
+	.pmem_wdata(itf.mem_wdata),
+	.pmem_rdata(itf.mem_rdata),
+	.pmem_resp(itf.mem_resp)
 );
 /***************************** End Instantiation *****************************/
 
