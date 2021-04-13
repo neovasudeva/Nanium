@@ -24,7 +24,7 @@ forward_br:
 not_taken_branches:
     add x1, x0, 1                      # Also, test branching on forwarded value :)
     beq x0, x1, oof                    # Don't take
-
+###########################
     beq x0, x0, backward_br_nt         # Take
 
 forwarding_tests:
@@ -39,7 +39,7 @@ forwarding_tests:
     add x2, x1, 0
     add x3, x1, 2                      # 2 immediate makes sr2 bits point to x2
     add x4, x0, 3
-
+###########################
     bne x3, x4, oof                    # Also, test branching on 2 forwarded values :)
 
     # MEM -> EX forwarding with stall
@@ -53,6 +53,7 @@ forwarding_tests:
     add x3, x1, 1 #2
     la x8, TEST
     sw  x3, 0(x8)
+###########################
     lw  x4, TEST
 
     bne x4, x3, oof
@@ -64,21 +65,21 @@ forwarding_tests:
 
     bne x3, x2, oof
 
-    ## Cache miss control test
-    #add x4, x0, 3
-    #lw  x2, B                          # Cache miss
-    #add x3, x2, 1                      # Try to forward from cache miss load
+    # Cache miss control test
+    add x4, x0, 3
+    lw  x2, B                          # Cache miss
+    add x3, x2, 1                      # Try to forward from cache miss load
 
-    #bne x4, x3, oof
+    bne x4, x3, oof
 
-    ## Forwarding contention test
-    #add x2, x0, 1
-    #add x2, x0, 2
-    #add x3, x2, 1
+    # Forwarding contention test
+    add x2, x0, 1
+    add x2, x0, 2
+    add x3, x2, 1
 
-    #beq x3, x2, oof
+    beq x3, x2, oof
 
-    #lw x7, GOOD
+    lw x7, GOOD
 
 halt:
     beq x0, x0, halt
@@ -86,12 +87,14 @@ halt:
 
 oof:
     lw x7, BAD
+###########################
     lw x2, PAY_RESPECTS
     beq x0, x0, halt
 
 backward_br_nt:
     beq x0, x1, oof                    # Don't take
 	
+	#...
     beq x0, x0, forwarding_tests       # Take
 
 

@@ -96,10 +96,10 @@ logic cache_stall;
 logic branch_rst;
 assign cache_stall = ((dcache_read || dcache_write) && ~dcache_resp) || 
                      ((icache_read) && ~icache_resp);
-assign branch_rst = (exmem_br_en == 1'b1 && exmem_instruction.opcode == rv32i_types::op_br) || 
+assign branch_rst = ((exmem_br_en && exmem_instruction.opcode == rv32i_types::op_br) || 
                     (exmem_instruction.opcode == rv32i_types::op_jal) || 
-                    (exmem_instruction.opcode == rv32i_types::op_jalr);
-
+                    (exmem_instruction.opcode == rv32i_types::op_jalr)) &&
+					~cache_stall;
 
 // loads and reset
 assign pc_load = ~forward_stall && ~cache_stall;
@@ -110,7 +110,7 @@ assign memwb_load = ~cache_stall;
 assign pc_rst = rst;
 assign ifid_rst = rst || branch_rst;
 assign idex_rst = rst || branch_rst;
-assign exmem_rst = rst || forward_stall || branch_rst;
+assign exmem_rst = rst || (forward_stall && ~cache_stall) || branch_rst;
 assign memwb_rst = rst;
 /*****************************************************************************/
 
