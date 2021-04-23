@@ -54,12 +54,12 @@ always_comb begin
     /* RS1 Forwarding logic */
 	if (idex_rs1 == exmem_rd && idex_rs1 != 5'b0 && exmem_load_regfile == 1'b1) begin
         // u_imm (lui)
-        if (idex_opcode == rv32i_types::op_lui)
+        if (exmem_opcode /*idex_opcode*/ == rv32i_types::op_lui)
             rs1mux_sel = rs1mux::u_imm;
 
-        // br_en (slt, sltu)
-        else if ((idex_opcode == rv32i_types::op_reg || idex_opcode == rv32i_types::op_imm) && 
-            (idex_instruction.funct3 == rv32i_types::slt || idex_instruction.funct3 == rv32i_types::sltu)) 
+        // br_en (slt, sltu, slti, sltiu)
+        else if ((exmem_opcode == rv32i_types::op_reg || exmem_opcode == rv32i_types::op_imm) && 
+            (exmem_instruction.funct3 == rv32i_types::slt || exmem_instruction.funct3 == rv32i_types::sltu)) 
             rs1mux_sel = rs1mux::br_en;
 
         // alu_out
@@ -74,12 +74,12 @@ always_comb begin
     /* RS2 Forwarding logic */
 	if (idex_rs2 == exmem_rd && idex_rs2 != 5'b0 && exmem_load_regfile == 1'b1) begin
         // u_imm (lui)
-        if (idex_opcode == rv32i_types::op_lui)
+        if (exmem_opcode /*idex_opcode*/ == rv32i_types::op_lui)
             rs2mux_sel = rs2mux::u_imm;
 
-        // br_en (slt, sltu)
-        else if ((idex_opcode == rv32i_types::op_reg || idex_opcode == rv32i_types::op_imm) && 
-            (idex_instruction.funct3 == rv32i_types::slt || idex_instruction.funct3 == rv32i_types::sltu)) 
+        // br_en (slt, sltu, slti, sltiu)
+        else if ((exmem_opcode == rv32i_types::op_reg || exmem_opcode == rv32i_types::op_imm) && 
+            (exmem_instruction.funct3 == rv32i_types::slt || exmem_instruction.funct3 == rv32i_types::sltu)) 
             rs2mux_sel = rs2mux::br_en;
 
         // alu_out
@@ -92,7 +92,7 @@ always_comb begin
         rs2mux_sel = rs2mux::rs2_out;
     
     /* DCACHE forwarding logic */
-    if (memwb_rd == exmem_rs2 && exmem_rs2 != 5'b0) 
+    if (memwb_rd == exmem_rs2 && exmem_rs2 != 5'b0 && memwb_load_regfile == 1'b1) 
         dcacheforwardmux_sel = dcacheforwardmux::regfilemux_out;
     else
         dcacheforwardmux_sel = dcacheforwardmux::rs2_out;
