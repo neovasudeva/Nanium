@@ -80,9 +80,7 @@ rv32i_word wb_regfilemux_out;
 rs1mux_sel_t rs1mux_sel;
 rs2mux_sel_t rs2mux_sel;
 dcacheforwardmux_sel_t dcacheforwardmux_sel;
-rv32i_word rs1mux_out;
 rv32i_word rs2mux_out;
-rv32i_word dcacheforwardmux_out;
 /*****************************************************************************/
 
 /**************************** LOAD/STALL SIGNALS ******************************/ 
@@ -172,17 +170,17 @@ ex_stage ex_stage(
     .idex_instruction   (idex_instruction),
     .idex_ctrl_word     (idex_ctrl_word),
     .idex_pc            (idex_pc),
-    .idex_rs1_out       (rs1mux_out /*idex_rs1_out*/),
-    .idex_rs2_out       (rs2mux_out /*idex_rs2_out*/),
-	/*
+    .idex_rs1_out       (idex_rs1_out),
+    .idex_rs2_out       (idex_rs2_out),
 	.rs1mux_sel			(rs1mux_sel),
+	.rs2mux_sel 		(rs2mux_sel), 
 	.exmem_br_en		(exmem_br_en),
 	.exmem_instruction	(exmem_instruction),
 	.exmem_alu_out		(exmem_alu_out),
 	.wb_regfilemux_out	(wb_regfilemux_out),
-	*/
     .ex_alu_out         (ex_alu_out),
-    .ex_br_en           (ex_br_en)
+    .ex_br_en           (ex_br_en),
+	.rs2mux_out			(rs2mux_out) 
 );
 
 /* Execute Registers */
@@ -205,19 +203,21 @@ exmem_reg exmem_pipe(
 );
 
 mem_stage mem_stage (
-    .exmem_instruction  (exmem_instruction),
-    .exmem_ctrl_word    (exmem_ctrl_word),
-    .exmem_pc           (exmem_pc),
-    .exmem_br_en        (exmem_br_en),
-    .exmem_alu_out      (exmem_alu_out),
-    .exmem_rs2_out      (dcacheforwardmux_out /*exmem_rs2_out*/),
-    .dcache_byte_enable (dcache_byte_enable),
-    .dcache_read        (dcache_read),
-    .dcache_write       (dcache_write),
-    .dcache_addr        (dcache_addr),
-    .dcache_wdata       (dcache_wdata),
-    .dcache_rdata       (dcache_rdata),
-    .mem_rdata          (mem_rdata)
+    .exmem_instruction  	(exmem_instruction),
+    .exmem_ctrl_word    	(exmem_ctrl_word),
+    .exmem_pc           	(exmem_pc),
+    .exmem_br_en        	(exmem_br_en),
+    .exmem_alu_out      	(exmem_alu_out),
+    .exmem_rs2_out      	(exmem_rs2_out),
+	.dcacheforwardmux_sel	(dcacheforwardmux_sel),
+	.wb_regfilemux_out		(wb_regfilemux_out),
+    .dcache_byte_enable 	(dcache_byte_enable),
+    .dcache_read        	(dcache_read),
+    .dcache_write       	(dcache_write),
+    .dcache_addr        	(dcache_addr),
+    .dcache_wdata       	(dcache_wdata),
+    .dcache_rdata       	(dcache_rdata),
+    .mem_rdata          	(mem_rdata)
 
 );
 
@@ -291,32 +291,6 @@ always_comb begin
     end
     else    
         pcmux_out = if_pc + 4;
-
-    // rs1mux
-    unique case (rs1mux_sel) 
-        rs1mux::rs1_out:        rs1mux_out = idex_rs1_out;
-        rs1mux::br_en:          rs1mux_out = exmem_br_en;
-        rs1mux::u_imm:          rs1mux_out = exmem_instruction.u_imm;
-        rs1mux::alu_out:        rs1mux_out = exmem_alu_out;
-        rs1mux::regfilemux_out: rs1mux_out = wb_regfilemux_out;
-        default:                rs1mux_out = idex_rs1_out;
-    endcase
-
-    // rs2 mux
-    unique case (rs2mux_sel) 
-        rs2mux::rs2_out:        rs2mux_out = idex_rs2_out;
-        rs2mux::br_en:          rs2mux_out = exmem_br_en;
-        rs2mux::u_imm:          rs2mux_out = exmem_instruction.u_imm;
-        rs2mux::alu_out:        rs2mux_out = exmem_alu_out;
-        rs2mux::regfilemux_out: rs2mux_out = wb_regfilemux_out;
-        default:                rs2mux_out = idex_rs2_out;
-    endcase
-
-    // dcacheforward mux
-    unique case (dcacheforwardmux_sel) 
-        dcacheforwardmux::rs2_out:          dcacheforwardmux_out = exmem_rs2_out;
-        dcacheforwardmux::regfilemux_out:   dcacheforwardmux_out = wb_regfilemux_out;
-    endcase
 end
 /*****************************************************************************/
 

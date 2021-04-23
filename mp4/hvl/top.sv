@@ -75,7 +75,7 @@ always_ff @(posedge itf.clk) begin
 	// move forward only on no stall
 	if (~stall) begin
 		// rs1 and rs2 data
-		exmem_rs1_rdata <= dut.datapath/*.ex_stage*/.rs1mux_out;
+		exmem_rs1_rdata <= dut.datapath.ex_stage.rs1mux_out;
 		
 		// branch delay
 		branch_rst_delay <= dut.datapath.branch_rst;
@@ -87,7 +87,7 @@ always_ff @(posedge itf.clk) begin
 		
 		// rs1 and rs2 data
 		memwb_rs1_rdata <= exmem_rs1_rdata;
-		memwb_rs2_rdata <= dut.datapath.dcacheforwardmux_out;
+		memwb_rs2_rdata <= dut.datapath.mem_stage.dcacheforwardmux_out;
 		
 		// mem addr/rmask/wmask/wdata/rdata
 		memwb_mem_addr <= dut.dcache_addr;
