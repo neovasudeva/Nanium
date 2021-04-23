@@ -96,21 +96,20 @@ logic cache_stall;
 logic branch_rst;
 assign cache_stall = ((dcache_read || dcache_write) && ~dcache_resp) || 
                      ((icache_read) && ~icache_resp);
-assign branch_rst = ((exmem_br_en && exmem_instruction.opcode == rv32i_types::op_br) || 
+assign branch_rst = (exmem_br_en && exmem_instruction.opcode == rv32i_types::op_br) || 
                     (exmem_instruction.opcode == rv32i_types::op_jal) || 
-                    (exmem_instruction.opcode == rv32i_types::op_jalr)) &&
-					~cache_stall;
-
+                    (exmem_instruction.opcode == rv32i_types::op_jalr);
+					
 // loads and reset
-assign pc_load = branch_rst? 1'b1 : ~forward_stall && ~cache_stall;
+assign pc_load = ~forward_stall && ~cache_stall;
 assign ifid_load = ~forward_stall && ~cache_stall;
 assign idex_load = ~forward_stall && ~cache_stall;
 assign exmem_load = ~cache_stall;
 assign memwb_load = ~cache_stall; 
 assign pc_rst = rst;
-assign ifid_rst = rst || branch_rst;
-assign idex_rst = rst || branch_rst;
-assign exmem_rst = rst || (forward_stall && ~cache_stall) || branch_rst;
+assign ifid_rst = rst || (branch_rst && ~cache_stall);
+assign idex_rst = rst || (branch_rst && ~cache_stall);
+assign exmem_rst = rst || (forward_stall && ~cache_stall) || (branch_rst && ~cache_stall);
 assign memwb_rst = rst;
 /*****************************************************************************/
 
@@ -139,7 +138,7 @@ ifid_reg ifid_pipe (
     .ifid_pc            (ifid_pc)
 );
 
-id_stage idecode(
+id_stage id_stage(
     .clk                    (clk),
 	.rst					(rst),
     .ifid_instruction       (ifid_instruction),
@@ -169,12 +168,19 @@ idex_reg idex_pipe(
     .idex_rs2_out       (idex_rs2_out)
 );
 
-ex_stage execute(
+ex_stage ex_stage(
     .idex_instruction   (idex_instruction),
     .idex_ctrl_word     (idex_ctrl_word),
     .idex_pc            (idex_pc),
     .idex_rs1_out       (rs1mux_out /*idex_rs1_out*/),
     .idex_rs2_out       (rs2mux_out /*idex_rs2_out*/),
+	/*
+	.rs1mux_sel			(rs1mux_sel),
+	.exmem_br_en		(exmem_br_en),
+	.exmem_instruction	(exmem_instruction),
+	.exmem_alu_out		(exmem_alu_out),
+	.wb_regfilemux_out	(wb_regfilemux_out),
+	*/
     .ex_alu_out         (ex_alu_out),
     .ex_br_en           (ex_br_en)
 );
@@ -192,13 +198,13 @@ exmem_reg exmem_pipe(
     .exmem_br_en        (exmem_br_en),
     .ex_alu_out         (ex_alu_out),
     .exmem_alu_out      (exmem_alu_out),
-    .idex_rs2_out       (idex_rs2_out),
+    .idex_rs2_out       (rs2mux_out /*idex_rs2_out*/),
     .exmem_rs2_out      (exmem_rs2_out),
     .idex_instruction   (idex_instruction),
     .exmem_instruction  (exmem_instruction)
 );
 
-mem_stage memory (
+mem_stage mem_stage (
     .exmem_instruction  (exmem_instruction),
     .exmem_ctrl_word    (exmem_ctrl_word),
     .exmem_pc           (exmem_pc),
@@ -234,7 +240,7 @@ memwb_reg memwb_pipe(
     .memwb_pc           (memwb_pc)
 );
 
-wb_stage writeback (
+wb_stage wb_stage (
     .memwb_instruction	(memwb_instruction),
     .memwb_ctrl_word	(memwb_ctrl_word),
     .memwb_alu_out		(memwb_alu_out),
