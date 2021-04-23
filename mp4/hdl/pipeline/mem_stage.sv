@@ -37,8 +37,9 @@ module mem_stage(
 
 /*********************************** SIGNALS *********************************/
 // signal for sb and sh
-//logic filter_data;
+rv32i_word filter_data;
 
+// mux outputs
 rv32i_word lhumux_out;
 rv32i_word lhmux_out;
 rv32i_word lbumux_out;
@@ -121,20 +122,19 @@ always_comb begin : WRITE
         dcache_byte_enable = 4'b1111;
 		
 	// filter data (sb and sh)
-	/*
 	unique case (exmem_instruction.funct3)
 		rv32i_types::sb:	filter_data = exmem_rs2_out << (exmem_alu_out[1:0] * 8);
 		rv32i_types::sh:	filter_data = exmem_rs2_out << (exmem_alu_out[1] * 16);
 		default: 			filter_data = exmem_rs2_out;
 	endcase
-	*/
+	
 end
 /*****************************************************************************/
 
 /********************************** MUXES ************************************/
 always_comb begin : FORWARDING
 	unique case (dcacheforwardmux_sel) 
-        dcacheforwardmux::rs2_out:          dcacheforwardmux_out = exmem_rs2_out;
+        dcacheforwardmux::rs2_out:          dcacheforwardmux_out = filter_data; //exmem_rs2_out;
         dcacheforwardmux::regfilemux_out:   dcacheforwardmux_out = wb_regfilemux_out;
     endcase
 end
