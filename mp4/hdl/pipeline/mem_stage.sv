@@ -50,7 +50,7 @@ rv32i_word dcacheforwardmux_out;
 assign dcache_read = exmem_ctrl_word.dcache_read;
 assign dcache_write = exmem_ctrl_word.dcache_write;
 assign dcache_addr = {exmem_alu_out[31:2], 2'b0};
-assign dcache_wdata = dcacheforwardmux_out; //exmem_rs2_out;
+assign dcache_wdata = filter_data;
 /*****************************************************************************/
 
 /******************************** READ LOGIC *********************************/
@@ -123,9 +123,9 @@ always_comb begin : WRITE
 		
 	// filter data (sb and sh)
 	unique case (exmem_instruction.funct3)
-		rv32i_types::sb:	filter_data = exmem_rs2_out << (exmem_alu_out[1:0] * 8);
-		rv32i_types::sh:	filter_data = exmem_rs2_out << (exmem_alu_out[1] * 16);
-		default: 			filter_data = exmem_rs2_out;
+		rv32i_types::sb:	filter_data = dcacheforwardmux_out << (exmem_alu_out[1:0] * 8);
+		rv32i_types::sh:	filter_data = dcacheforwardmux_out << (exmem_alu_out[1] * 16);
+		default: 			filter_data = dcacheforwardmux_out;
 	endcase
 	
 end
@@ -134,7 +134,7 @@ end
 /********************************** MUXES ************************************/
 always_comb begin : FORWARDING
 	unique case (dcacheforwardmux_sel) 
-        dcacheforwardmux::rs2_out:          dcacheforwardmux_out = filter_data; //exmem_rs2_out;
+        dcacheforwardmux::rs2_out:          dcacheforwardmux_out = exmem_rs2_out;
         dcacheforwardmux::regfilemux_out:   dcacheforwardmux_out = wb_regfilemux_out;
     endcase
 end
