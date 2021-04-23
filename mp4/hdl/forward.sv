@@ -54,7 +54,7 @@ always_comb begin
     /* RS1 Forwarding logic */
 	if (idex_rs1 == exmem_rd && idex_rs1 != 5'b0 && exmem_load_regfile == 1'b1) begin
         // u_imm (lui)
-        if (exmem_opcode /*idex_opcode*/ == rv32i_types::op_lui)
+        if (exmem_opcode == rv32i_types::op_lui)
             rs1mux_sel = rs1mux::u_imm;
 
         // br_en (slt, sltu, slti, sltiu)
@@ -74,7 +74,7 @@ always_comb begin
     /* RS2 Forwarding logic */
 	if (idex_rs2 == exmem_rd && idex_rs2 != 5'b0 && exmem_load_regfile == 1'b1) begin
         // u_imm (lui)
-        if (exmem_opcode /*idex_opcode*/ == rv32i_types::op_lui)
+        if (exmem_opcode == rv32i_types::op_lui)
             rs2mux_sel = rs2mux::u_imm;
 
         // br_en (slt, sltu, slti, sltiu)
