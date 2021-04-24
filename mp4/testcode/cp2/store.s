@@ -14,18 +14,18 @@ _start:
 	#lw	x6, b4
 
 	# sh
-	lw	x5, w4
-	sh	x5, 0(x4)
-	sh	x5, 0(x2)
-	lw	x6, b4		# cdefcdef
+	#lw	x5, w4
+	#sh	x5, 0(x4)
+	#sh	x5, 0(x2)
+	#lw	x6, b4		# cdefcdef
 
 	# sb
-	#lw	x5, w4
-	#sb	x5, 0(x4)
-	#sb	x5, 0(x3)
-	#sb	x5, 0(x2)
-	#sb	x5, 0(x1)
-	#lw	x6, b4		# efefefef
+	lw	x5, w4
+	sb	x5, 0(x4)
+	sb	x5, 0(x3)
+	sb	x5, 0(x2)
+	sb	x5, 0(x1)
+	lw	x6, b4		# 79abcdef
 
 	jal x0, deadloop
 
