@@ -47,6 +47,10 @@ interface tb_itf();
     logic [63:0] mem_wdata;
     logic mem_resp;
     logic [63:0] mem_rdata;
+	
+	/* Performance Counters */
+	int br_wrong;
+	int br_total; 
 
     /* Mailbox for memory path */
     mailbox #(string) path_mb;

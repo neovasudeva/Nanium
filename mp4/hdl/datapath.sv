@@ -116,6 +116,36 @@ assign icache_read = 1'b1; // always read, change later
 assign icache_addr = if_pc;
 /*****************************************************************************/ 
 
+/******************************** PERF COUNTERS ******************************/ 
+int br_wrong = 0;
+int br_total = 0;
+
+always_ff @(posedge clk) begin
+	if (exmem_instruction.opcode == rv32i_types::op_br)
+		br_total <= br_total + 1;
+	if (branch_rst && exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
+		br_wrong <= br_wrong + 1;
+end
+ 
+pbp #(.w_bits(8), .hist_len(12)) pbp (
+	.clk(clk),
+	.rst(rst),
+	.if_pc(),
+    .if_bp_br_en(),
+    .if_y_out(),
+    .if_bp_target(),
+    .btb_hit(),
+    .bp_rst(),
+    .exmem_pc(),
+    .exmem_br_en(),
+    .exmem_bp_target(),
+    .exmem_y_out(),
+    .exmem_opcode(),
+    .exmem_alu_out(),
+    .exmem_bp_br_en()
+);
+/*****************************************************************************/ 
+
 /******************************* PIPELINE REGS *******************************/
 /* Instruction Fetch Registers */
 pc_register if_pc_reg (

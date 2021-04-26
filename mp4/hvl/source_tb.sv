@@ -31,8 +31,11 @@ end
 int timeout = 100000000;
 
 always @(posedge tb_itf.clk) begin
-    if (rvfi.halt)
+    if (rvfi.halt) begin
+		$display("br_total: %d; ", itf.br_total);
+		$display("br_wrong: %d; ", itf.br_wrong);
         $finish;
+	end
     if (timeout == 0) begin
         $display("TOP: Timed out");
         $finish;
