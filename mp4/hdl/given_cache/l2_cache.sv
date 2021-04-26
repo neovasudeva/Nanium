@@ -66,8 +66,11 @@ l2_cache_control control(.*);
 l2_cache_datapath datapath(.*);
 
 //bus_adapter bus_adapter(.address(mem_address), .*);
-assign mem_wdata256 = {8{mem_wdata}};
-assign mem_rdata = mem_rdata256[(32*mem_address[4:2]) +: 32];
-assign mem_byte_enable256 = {28'h0, mem_byte_enable} << (mem_address[4:2]*4);
+//assign mem_wdata256 = {8{mem_wdata}};
+//assign mem_rdata = mem_rdata256[(32*mem_address[4:2]) +: 32];
+//assign mem_byte_enable256 = {28'h0, mem_byte_enable} << (mem_address[4:2]*4);
+assign mem_wdata256 = mem_wdata;
+assign mem_rdata = mem_rdata256;
+assign mem_byte_enable256 = 32'hFFFFFFFF;
 
 endmodule : l2_cache

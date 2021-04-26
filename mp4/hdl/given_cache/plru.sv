@@ -12,7 +12,7 @@ module plru #(
 
 localparam num_sets = 2**s_index;
 
-logic [width-1:0] data /*[num_sets-1:0] /* synthesis ramstyle = "logic" */;
+logic [width-1:0] data /*[num_sets-1:0] */ /* synthesis ramstyle = "logic" */;
 assign plru = data;
 
 always_ff @(posedge clk)
