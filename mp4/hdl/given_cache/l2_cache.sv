@@ -7,7 +7,7 @@ import pmem_addr_mux::*;
 import data_in_mux::*;
 import data_write_en_mux::*;
 
-module cache #(
+module l2_cache #(
     parameter s_offset = 5,
     parameter s_index  = 3,
     parameter s_tag    = 32 - s_offset - s_index,
@@ -24,9 +24,9 @@ module cache #(
     input logic mem_write,
     input logic [3:0] mem_byte_enable,
     input rv32i_word mem_address,
-    input rv32i_word mem_wdata,
+    input logic [255:0] mem_wdata,
     output logic mem_resp,
-    output rv32i_word mem_rdata,
+    output logic [255:0] mem_rdata,
 
     // Port to Cacheline Adapter
     input pmem_resp,
@@ -66,12 +66,15 @@ logic [255:0] cache_o;
 assign mem_rdata256 = cache_o;
 assign pmem_wdata = cache_o;
 
-cache_control control(.*);
+l2_cache_control control(.*);
 
-cache_datapath datapath(.*);
+l2_cache_datapath datapath(.*);
 
-bus_adapter bus_adapter(.address(mem_address), .*);
+//bus_adapter bus_adapter(.address(mem_address), .*);
+assign mem_wdata256 = {8{mem_wdata}};
+assign mem_rdata = mem_rdata256[(32*mem_address[4:2]) +: 32];
+assign mem_byte_enable256 = {28'h0, mem_byte_enable} << (mem_address[4:2]*4);
 
-endmodule : cache
+endmodule : l2_cache
 
 

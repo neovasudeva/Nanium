@@ -43,7 +43,15 @@ logic [255:0] dpmem_wdata;
 logic dpmem_resp;
 logic [255:0] dpmem_rdata;
 
-/* arbiter <--> cachline adapter */
+/* arbiter <--> L2 */
+logic l2mem_write;
+logic l2mem_read;
+logic [31:0] l2mem_address;
+logic [255:0] l2mem_wdata;
+logic l2mem_resp;
+logic [255:0] l2mem_rdata;
+
+/* L2 <--> cachline adapter */
 logic apmem_write;
 logic apmem_read;
 logic [31:0] apmem_address;
@@ -112,12 +120,31 @@ arbiter cache_arbiter (
     .dpmem_resp		(dpmem_resp),
     .dpmem_rdata	(dpmem_rdata),
 
-    .pmem_write		(apmem_write),
-    .pmem_read		(apmem_read),
-    .pmem_address	(apmem_address),
-    .pmem_wdata		(apmem_wdata),
-    .pmem_resp		(apmem_resp),
-    .pmem_rdata		(apmem_rdata)
+    .pmem_write		(l2mem_write),
+    .pmem_read		(l2mem_read),
+    .pmem_address	(l2mem_address),
+    .pmem_wdata		(l2mem_wdata),
+    .pmem_resp		(l2mem_resp),
+    .pmem_rdata		(l2mem_rdata)
+);
+
+l2_cache l2_cache (
+	.clk(clk),
+	.rst(rst),
+	.mem_read(l2mem_read),
+    .mem_write(l2mem_write),
+    .mem_byte_enable(4'b1111),
+    .mem_address(l2mem_address),
+    .mem_wdata(l2mem_wdata),
+    .mem_resp(l2mem_resp),
+    .mem_rdata(l2mem_rdata),
+
+    .pmem_resp(apmem_resp),
+    .pmem_rdata(apmem_rdata),
+    .pmem_read(apmem_read),
+    .pmem_write(apmem_write),
+    .pmem_address(apmem_address),
+    .pmem_wdata(apmem_wdata)
 );
 
 // cacheline adapter

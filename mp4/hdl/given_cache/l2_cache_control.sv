@@ -7,7 +7,7 @@ import pmem_addr_mux::*;
 import data_in_mux::*;
 import data_write_en_mux::*;
 
-module cache_control (
+module l2_cache_control (
     input clk,
     input rst,
 
@@ -197,6 +197,6 @@ begin: next_state_assignment
     else state <= next_state;
 end
 
-endmodule : cache_control
+endmodule : l2_cache_control
 
 

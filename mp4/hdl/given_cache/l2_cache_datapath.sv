@@ -10,7 +10,7 @@ import pmem_addr_mux::*;
 import data_in_mux::*;
 import data_write_en_mux::*;
 
-module cache_datapath #(
+module l2_cache_datapath #(
     parameter s_offset = 5,
     parameter s_index  = 3,
     parameter s_tag    = 32 - s_offset - s_index,
@@ -59,7 +59,7 @@ rv32i_word [1:0] data_array_write_en;
 logic [1:0][255:0] data_array_in;
 logic [1:0][255:0] data_array_out;
 
-array #(.s_index(3), .width(24)) tag_0(
+l2_array #(.s_index(3), .width(24)) tag_0(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -70,7 +70,7 @@ array #(.s_index(3), .width(24)) tag_0(
     .dataout(way_out[0])
 );
 
-array #(.s_index(3), .width(24)) tag_1(
+l2_array #(.s_index(3), .width(24)) tag_1(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -81,7 +81,7 @@ array #(.s_index(3), .width(24)) tag_1(
     .dataout(way_out[1])
 );
 
-array #(.s_index(3), .width(1)) valid_0(
+l2_array #(.s_index(3), .width(1)) valid_0(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -92,7 +92,7 @@ array #(.s_index(3), .width(1)) valid_0(
     .dataout(valid_out[0])
 );
 
-array #(.s_index(3), .width(1)) valid_1(
+l2_array #(.s_index(3), .width(1)) valid_1(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -103,7 +103,7 @@ array #(.s_index(3), .width(1)) valid_1(
     .dataout(valid_out[1])
 );
 
-array #(.s_index(3), .width(1)) dirty_0(
+l2_array #(.s_index(3), .width(1)) dirty_0(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -114,7 +114,7 @@ array #(.s_index(3), .width(1)) dirty_0(
     .dataout(dirty_out[0])
 );
 
-array #(.s_index(3), .width(1)) dirty_1(
+l2_array #(.s_index(3), .width(1)) dirty_1(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -144,7 +144,7 @@ plru #(.s_index(3), .width(1)) pLRU(
     .plru(plru)
 );
 
-data_array #(.s_offset(5), .s_index(3)) data_array_0(
+l2_data_array #(.s_offset(5), .s_index(3)) data_array_0(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -155,7 +155,7 @@ data_array #(.s_offset(5), .s_index(3)) data_array_0(
     .dataout(data_array_out[0])
 );
 
-data_array #(.s_offset(5), .s_index(3)) data_array_1(
+l2_data_array #(.s_offset(5), .s_index(3)) data_array_1(
     .clk(clk),
     .rst(rst),
     .read(1'b1),
@@ -206,6 +206,6 @@ always_comb begin: LOGIC
     endcase
 end
 
-endmodule : cache_datapath
+endmodule : l2_cache_datapath
 
 
