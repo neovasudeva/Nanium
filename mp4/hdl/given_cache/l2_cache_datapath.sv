@@ -1,7 +1,3 @@
-/* MODIFY. The cache datapath. It contains the data,
-valid, dirty, tag, and LRU arrays, comparators, muxes,
-logic gates and other supporting logic. */
-
 `define BAD_MUX_SEL $fatal("%0t %s %0d: Illegal mux select", $time, `__FILE__, `__LINE__)
 
 import rv32i_types::*;
@@ -39,11 +35,9 @@ module l2_cache_datapath #(
     input logic [1:0] dirty_in,
     input logic lru_load,
     input logic mru,
-    // input logic lru_in,
     output logic [23:0] way_out[2],
     output logic [1:0] valid_out,
     output logic [1:0] dirty_out,
-    // output logic lru_out,
     output logic plru,
 	
 	output logic hit,
@@ -70,17 +64,6 @@ l2_array #(.s_index(3), .width(24)) tag_0(
     .dataout(way_out[0])
 );
 
-l2_array #(.s_index(3), .width(24)) tag_1(
-    .clk(clk),
-    .rst(rst),
-    .read(1'b1),
-    .load(way_load[1]),
-    .rindex(mem_address[7:5]),
-    .windex(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[1])
-);
-
 l2_array #(.s_index(3), .width(1)) valid_0(
     .clk(clk),
     .rst(rst),
@@ -90,17 +73,6 @@ l2_array #(.s_index(3), .width(1)) valid_0(
     .windex(mem_address[7:5]),
     .datain(valid_in[0]),
     .dataout(valid_out[0])
-);
-
-l2_array #(.s_index(3), .width(1)) valid_1(
-    .clk(clk),
-    .rst(rst),
-    .read(1'b1),
-    .load(valid_load[1]),
-    .rindex(mem_address[7:5]),
-    .windex(mem_address[7:5]),
-    .datain(valid_in[1]),
-    .dataout(valid_out[1])
 );
 
 l2_array #(.s_index(3), .width(1)) dirty_0(
@@ -114,36 +86,6 @@ l2_array #(.s_index(3), .width(1)) dirty_0(
     .dataout(dirty_out[0])
 );
 
-l2_array #(.s_index(3), .width(1)) dirty_1(
-    .clk(clk),
-    .rst(rst),
-    .read(1'b1),
-    .load(dirty_load[1]),
-    .rindex(mem_address[7:5]),
-    .windex(mem_address[7:5]),
-    .datain(dirty_in[1]),
-    .dataout(dirty_out[1])
-);
-
-// array #(.s_index(3), .width(1)) lru(
-//     .clk(clk),
-//     .rst(rst),
-//     .read(1'b1),
-//     .load(lru_load),
-//     .rindex(mem_address[7:5]),
-//     .windex(mem_address[7:5]),
-//     .datain(lru_in),
-//     .dataout(lru_out)
-// );
-
-plru #(.s_index(3), .width(1)) pLRU(
-    .clk(clk),
-    .rst(rst),
-    .load(lru_load),
-    .mru(mru),
-    .plru(plru)
-);
-
 l2_data_array #(.s_offset(5), .s_index(3)) data_array_0(
     .clk(clk),
     .rst(rst),
@@ -153,6 +95,39 @@ l2_data_array #(.s_offset(5), .s_index(3)) data_array_0(
     .windex(mem_address[7:5]),
     .datain(data_array_in[0]),
     .dataout(data_array_out[0])
+);
+
+l2_array #(.s_index(3), .width(24)) tag_1(
+    .clk(clk),
+    .rst(rst),
+    .read(1'b1),
+    .load(way_load[1]),
+    .rindex(mem_address[7:5]),
+    .windex(mem_address[7:5]),
+    .datain(mem_address[31:8]),
+    .dataout(way_out[1])
+);
+
+l2_array #(.s_index(3), .width(1)) valid_1(
+    .clk(clk),
+    .rst(rst),
+    .read(1'b1),
+    .load(valid_load[1]),
+    .rindex(mem_address[7:5]),
+    .windex(mem_address[7:5]),
+    .datain(valid_in[1]),
+    .dataout(valid_out[1])
+);
+
+l2_array #(.s_index(3), .width(1)) dirty_1(
+    .clk(clk),
+    .rst(rst),
+    .read(1'b1),
+    .load(dirty_load[1]),
+    .rindex(mem_address[7:5]),
+    .windex(mem_address[7:5]),
+    .datain(dirty_in[1]),
+    .dataout(dirty_out[1])
 );
 
 l2_data_array #(.s_offset(5), .s_index(3)) data_array_1(
@@ -166,6 +141,14 @@ l2_data_array #(.s_offset(5), .s_index(3)) data_array_1(
     .dataout(data_array_out[1])
 );
 
+plru #(.s_index(3), .width(1)) pLRU(
+    .clk(clk),
+    .rst(rst),
+    .load(lru_load),
+    .mru(mru),
+    .plru(plru)
+);
+
 assign way_hit[0] = (way_out[0] == mem_address[31:8]) && valid_out[0];
 assign way_hit[1] = (way_out[1] == mem_address[31:8]) && valid_out[1];
 assign hit = way_hit[0] || way_hit[1];
@@ -176,12 +159,14 @@ always_comb begin: LOGIC
         cache_out_mux::way_1: cache_o = data_array_out[1];
         default: cache_o = data_array_out[0];
     endcase
+
     unique case (pmem_address_sel)
         pmem_addr_mux::cpu: pmem_address = {mem_address[31:5], 5'b0};
         pmem_addr_mux::dirty_0_write: pmem_address = {way_out[0], mem_address[7:5], 5'b0};
         pmem_addr_mux::dirty_1_write: pmem_address = {way_out[1], mem_address[7:5], 5'b0};
         default: pmem_address = {mem_address[31:5], 5'b0};
     endcase
+
     unique case (way_data_in_sel[0])
         data_in_mux::cacheline_adaptor: data_array_in[0] = pmem_rdata;
         data_in_mux::bus_adaptor: data_array_in[0] = mem_wdata256;
@@ -192,6 +177,7 @@ always_comb begin: LOGIC
         data_in_mux::bus_adaptor: data_array_in[1] = mem_wdata256;
         default: data_array_in[1] = pmem_rdata;
     endcase
+
     unique case (way_write_en_sel[0])
         data_write_en_mux::idle: data_array_write_en[0] = 32'b0;
         data_write_en_mux::load_mem: data_array_write_en[0] = 32'hFFFFFFFF;
@@ -207,5 +193,3 @@ always_comb begin: LOGIC
 end
 
 endmodule : l2_cache_datapath
-
-

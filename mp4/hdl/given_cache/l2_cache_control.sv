@@ -1,6 +1,3 @@
-/* MODIFY. The cache controller. It is a state machine
-that controls the behavior of the cache. */
-
 import rv32i_types::*;
 import cache_out_mux::*;
 import pmem_addr_mux::*;
@@ -23,7 +20,6 @@ module l2_cache_control (
     input logic [23:0] way_out[2],
     input logic [1:0] valid_out,
     input logic [1:0] dirty_out,
-    // input logic lru_out,
     input logic plru,
     output logic [1:0] way_load,
     output logic [1:0] valid_load,
@@ -31,7 +27,6 @@ module l2_cache_control (
     output logic [1:0] dirty_load,
     output logic [1:0] dirty_in,
     output logic lru_load,
-    // output logic lru_in,
     output logic mru,
 	
 	input logic hit,
@@ -69,7 +64,6 @@ function void set_defaults();
     dirty_in[0] = 1'b0;
     dirty_in[1] = 1'b0;
     lru_load = 1'b0;
-    // lru_in = 1'b0;
     mru = 1'b0;
     way_sel = cache_out_mux::way_0;
     pmem_address_sel = pmem_addr_mux::cpu;
@@ -98,7 +92,6 @@ begin : state_actions
                 lru_load = 1'b1;
                 mem_resp = 1'b1;
                 if (way_hit[0]) begin
-                    // lru_in = 1'b1;
                     mru = 1'b0;
                     if (mem_write) begin
                         dirty_load[0] = 1'b1;
@@ -110,7 +103,6 @@ begin : state_actions
                         way_sel = cache_out_mux::way_0;
                     end
                 end else begin
-                    // lru_in = 1'b0;
                     mru = 1'b1;
                     if (mem_write) begin
                         dirty_load[1] = 1'b1;
@@ -198,5 +190,3 @@ begin: next_state_assignment
 end
 
 endmodule : l2_cache_control
-
-
