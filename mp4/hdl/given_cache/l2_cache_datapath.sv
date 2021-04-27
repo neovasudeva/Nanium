@@ -384,6 +384,8 @@ plru #(.s_index(3), .width(3)) pLRU(
     .clk(clk),
     .rst(rst),
     .load(lru_load),
+    .rindex(mem_address[7:5]),
+    .windex(mem_address[7:5]),
     .mru(mru),
     .plru(plru)
 );
