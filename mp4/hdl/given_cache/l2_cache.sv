@@ -1,5 +1,4 @@
 import rv32i_types::*;
-import cache_out_mux::*;
 import pmem_addr_mux::*;
 import data_in_mux::*;
 import data_write_en_mux::*;
@@ -34,24 +33,24 @@ module l2_cache #(
     output [255:0] pmem_wdata
 );
 
-logic [23:0] way_out[2];
-logic [1:0] valid_out;
-logic [1:0] dirty_out;
-logic plru;
-logic [1:0] way_load;
-logic [1:0] valid_load;
-logic [1:0] valid_in;
-logic [1:0] dirty_load;
-logic [1:0] dirty_in;
+logic [23:0] way_out[8];
+logic [7:0] valid_out;
+logic [7:0] dirty_out;
+logic [2:0] plru;
+logic [7:0] way_load;
+logic [7:0] valid_load;
+logic [7:0] valid_in;
+logic [7:0] dirty_load;
+logic [7:0] dirty_in;
 logic lru_load;
-logic mru;
+logic [2:0] mru;
 logic hit;
-logic [1:0] way_hit;
+logic [7:0] way_hit;
 
-cache_out_mux_sel_t way_sel;
+logic [2:0] way_sel;
 pmem_addr_mux_sel_t pmem_address_sel;
-data_in_mux_sel_t way_data_in_sel[2];
-data_write_en_mux_sel_t way_write_en_sel[2];
+data_in_mux_sel_t way_data_in_sel[8];
+data_write_en_mux_sel_t way_write_en_sel[8];
 
 logic [255:0] mem_rdata256;
 logic [255:0] mem_wdata256;

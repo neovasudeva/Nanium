@@ -1,5 +1,4 @@
 import rv32i_types::*;
-import cache_out_mux::*;
 import pmem_addr_mux::*;
 import data_in_mux::*;
 import data_write_en_mux::*;
@@ -17,29 +16,26 @@ module l2_cache_control (
     output logic pmem_read,
     output logic pmem_write,
 
-    input logic [23:0] way_out[2],
-    input logic [1:0] valid_out,
-    input logic [1:0] dirty_out,
-    input logic plru,
-    output logic [1:0] way_load,
-    output logic [1:0] valid_load,
-    output logic [1:0] valid_in,
-    output logic [1:0] dirty_load,
-    output logic [1:0] dirty_in,
+    input logic [23:0] way_out[8],
+    input logic [7:0] valid_out,
+    input logic [7:0] dirty_out,
+    input logic [2:0] plru,
+    output logic [7:0] way_load,
+    output logic [7:0] valid_load,
+    output logic [7:0] valid_in,
+    output logic [7:0] dirty_load,
+    output logic [7:0] dirty_in,
     output logic lru_load,
-    output logic mru,
+    output logic [2:0] mru,
 	
 	input logic hit,
-    input [1:0] way_hit,
+    input [7:0] way_hit,
 
-    output cache_out_mux_sel_t way_sel,
+    output logic [2:0] way_sel,
     output pmem_addr_mux_sel_t pmem_address_sel,
-    output data_in_mux_sel_t way_data_in_sel[2],
-    output data_write_en_mux_sel_t way_write_en_sel[2]
+    output data_in_mux_sel_t way_data_in_sel[8],
+    output data_write_en_mux_sel_t way_write_en_sel[8]
 );
-
-logic lru_out;
-assign lru_out = decode_plru(plru);
 
 enum int unsigned {
     /* List of states */
@@ -53,32 +49,19 @@ function void set_defaults();
     mem_resp = 1'b0;
     pmem_read = 1'b0;
     pmem_write = 1'b0;
-    way_load[0] = 1'b0;
-    way_load[1] = 1'b0;
-    valid_load[0] = 1'b0;
-    valid_load[1] = 1'b0;
-    valid_in[0] = 1'b0;
-    valid_in[1] = 1'b0;
-    dirty_load[0] = 1'b0;
-    dirty_load[1] = 1'b0;
-    dirty_in[0] = 1'b0;
-    dirty_in[1] = 1'b0;
-    lru_load = 1'b0;
-    mru = 1'b0;
-    way_sel = cache_out_mux::way_0;
-    pmem_address_sel = pmem_addr_mux::cpu;
-    way_data_in_sel[0] = data_in_mux::cacheline_adaptor;
-    way_data_in_sel[1] = data_in_mux::cacheline_adaptor;
-    way_write_en_sel[0] = data_write_en_mux::idle;
-    way_write_en_sel[1] = data_write_en_mux::idle;
-endfunction
-
-function logic decode_plru(logic plru);
-    if (plru) begin
-        return 1'd0;
-    end else begin
-        return 1'd1;
+    for (logic [3:0] i = 0; i < 4'd8; i++) begin
+        way_load[i] = 1'b0;
+        valid_load[i] = 1'b0;
+        valid_in[i] = 1'b0;
+        dirty_load[i] = 1'b0;
+        dirty_in[i] = 1'b0;
+        way_data_in_sel[i] = data_in_mux::cacheline_adaptor;
+        way_write_en_sel[i] = data_write_en_mux::idle;
     end
+    lru_load = 1'b0;
+    mru = 3'd0;
+    way_sel = 3'd0;
+    pmem_address_sel = pmem_addr_mux::cpu;
 endfunction
 
 always_comb
@@ -91,27 +74,20 @@ begin : state_actions
             if (hit) begin
                 lru_load = 1'b1;
                 mem_resp = 1'b1;
-                if (way_hit[0]) begin
-                    mru = 1'b0;
-                    if (mem_write) begin
-                        dirty_load[0] = 1'b1;
-                        dirty_in[0] = 1'b1;
-                        way_write_en_sel[0] = data_write_en_mux::cpu_write;
-                        way_data_in_sel[0] = data_in_mux::bus_adaptor;
-                        way_data_in_sel[1] = data_in_mux::bus_adaptor;
-                    end else begin
-                        way_sel = cache_out_mux::way_0;
-                    end
-                end else begin
-                    mru = 1'b1;
-                    if (mem_write) begin
-                        dirty_load[1] = 1'b1;
-                        dirty_in[1] = 1'b1;
-                        way_write_en_sel[1] = data_write_en_mux::cpu_write;
-                        way_data_in_sel[0] = data_in_mux::bus_adaptor;
-                        way_data_in_sel[1] = data_in_mux::bus_adaptor;
-                    end else begin
-                        way_sel = cache_out_mux::way_1;
+                for (logic [3:0] i = 0; i < 4'd8; i++) begin
+                    if (way_hit[i]) begin
+                        mru = i;
+                        if (mem_write) begin
+                            dirty_load[i] = 1'b1;
+                            dirty_in[i] = 1'b1;
+                            way_write_en_sel[i] = data_write_en_mux::cpu_write;
+                            for (logic [3:0] j = 0; j < 4'd8; j++) begin
+                                way_data_in_sel[j] = data_in_mux::bus_adaptor;
+                            end
+                        end else begin
+                            way_sel = i;
+                        end
+                        break;
                     end
                 end
             end
@@ -119,25 +95,43 @@ begin : state_actions
         ALLOCATE: begin
             pmem_read = 1'b1;
             pmem_address_sel = pmem_addr_mux::cpu;
-            way_data_in_sel[0] = data_in_mux::cacheline_adaptor;
-            way_data_in_sel[1] = data_in_mux::cacheline_adaptor;
-            way_load[lru_out] = 1'b1;
-            valid_load[lru_out] = 1'b1;
-            valid_in[lru_out] = 1'b1;
-            dirty_load[lru_out] = 1'b1;
-            dirty_in[lru_out] = 1'b0;
-            way_write_en_sel[lru_out] = data_write_en_mux::load_mem;
+            for (logic [3:0] i = 0; i < 4'd8; i++) begin
+                way_data_in_sel[i] = data_in_mux::cacheline_adaptor;
+            end
+            way_load[plru] = 1'b1;
+            valid_load[plru] = 1'b1;
+            valid_in[plru] = 1'b1;
+            dirty_load[plru] = 1'b1;
+            dirty_in[plru] = 1'b0;
+            way_write_en_sel[plru] = data_write_en_mux::load_mem;
         end
         WRITE_BACK: begin
             pmem_write = 1'b1;
-            unique case (lru_out)
-                0: begin
-                    way_sel = cache_out_mux::way_0;
+            way_sel = plru;
+            unique case (plru)
+                3'd0: begin
                     pmem_address_sel = pmem_addr_mux::dirty_0_write;
                 end
-                1: begin
-                    way_sel = cache_out_mux::way_1;
+                3'd1: begin
                     pmem_address_sel = pmem_addr_mux::dirty_1_write;
+                end
+                3'd2: begin
+                    pmem_address_sel = pmem_addr_mux::dirty_2_write;
+                end
+                3'd3: begin
+                    pmem_address_sel = pmem_addr_mux::dirty_3_write;
+                end
+                3'd4: begin
+                    pmem_address_sel = pmem_addr_mux::dirty_4_write;
+                end
+                3'd5: begin
+                    pmem_address_sel = pmem_addr_mux::dirty_5_write;
+                end
+                3'd6: begin
+                    pmem_address_sel = pmem_addr_mux::dirty_6_write;
+                end
+                3'd7: begin
+                    pmem_address_sel = pmem_addr_mux::dirty_7_write;
                 end
                 default: ;
             endcase
@@ -161,7 +155,7 @@ begin : next_state_logic
             if (hit) begin
                 next_state = IDLE;
             end
-            else if (~dirty_out[lru_out]) begin
+            else if (~dirty_out[plru]) begin
                 next_state = ALLOCATE;
             end
             else begin

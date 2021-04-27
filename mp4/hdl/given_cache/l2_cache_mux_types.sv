@@ -1,15 +1,14 @@
-package cache_out_mux;
-typedef enum bit {
-    way_0  = 1'b0
-    ,way_1  = 1'b1
-} cache_out_mux_sel_t;
-endpackage
-
 package pmem_addr_mux;
-typedef enum bit [1:0] {
-    cpu  = 2'b00
-    ,dirty_0_write = 2'b01
-    ,dirty_1_write = 2'b10
+typedef enum bit [3:0] {
+    cpu  = 4'd0
+    ,dirty_0_write = 4'd1
+    ,dirty_1_write = 4'd2
+    ,dirty_2_write = 4'd3
+    ,dirty_3_write = 4'd4
+    ,dirty_4_write = 4'd5
+    ,dirty_5_write = 4'd6
+    ,dirty_6_write = 4'd7
+    ,dirty_7_write = 4'd8
 } pmem_addr_mux_sel_t;
 endpackage
 
