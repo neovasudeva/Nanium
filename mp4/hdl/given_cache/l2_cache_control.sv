@@ -76,7 +76,7 @@ begin : state_actions
                 mem_resp = 1'b1;
                 for (logic [3:0] i = 0; i < 4'd8; i++) begin
                     if (way_hit[i]) begin
-                        mru = i;
+                        mru = i[2:0];
                         if (mem_write) begin
                             dirty_load[i] = 1'b1;
                             dirty_in[i] = 1'b1;
@@ -85,7 +85,7 @@ begin : state_actions
                                 way_data_in_sel[j] = data_in_mux::bus_adaptor;
                             end
                         end else begin
-                            way_sel = i;
+                            way_sel = i[2:0];
                         end
                         break;
                     end

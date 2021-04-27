@@ -40,7 +40,7 @@ module l2_cache_datapath #(
     output logic [2:0] plru,
 	
 	output logic hit,
-    output [7:0] way_hit,
+    output logic [7:0] way_hit,
 
     input logic [2:0] way_sel,
     input pmem_addr_mux_sel_t pmem_address_sel,
