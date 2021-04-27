@@ -33,7 +33,7 @@ assign btb_hit = (r_tag == tag_out && valid_out);
 /*****************************************************************************/
 
 /******************************* LOGICAL UNITS *******************************/ 
-btb_array #(.width(tag_len)) tag_array (
+btb_array #(.width(tag_len), .bit_entry(bit_entry)) tag_array (
     .clk    (clk),
     .rst    (rst),
     .load   (load),
@@ -43,7 +43,7 @@ btb_array #(.width(tag_len)) tag_array (
     .dout   (tag_out)
 );
 
-btb_array #(.width(width)) target_array (
+btb_array #(.width(width), .bit_entry(bit_entry)) target_array (
     .clk    (clk),
     .rst    (rst),
     .load   (load),
@@ -53,7 +53,7 @@ btb_array #(.width(width)) target_array (
     .dout   (target_out)
 );
 
-btb_array #(.width(1)) valid_array (
+btb_array #(.width(1), .bit_entry(bit_entry)) valid_array (
     .clk    (clk),
     .rst    (rst),
     .load   (load),

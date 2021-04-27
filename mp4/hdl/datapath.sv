@@ -309,6 +309,7 @@ forward forwarding_unit (
 pbp #(.w_bits(8), .hist_len(12)) pbp (
 	.clk				(clk),
 	.rst				(rst),
+	.load				(~cache_stall),		// only load new perceptrons/btb/regs on no cache_stall
 	.if_pc				(if_pc),
     .if_bp_br_en		(if_pbp.bp_br_en),
     .if_y_out			(if_pbp.y_out),	

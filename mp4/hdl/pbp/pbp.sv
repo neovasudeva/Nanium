@@ -7,6 +7,7 @@ module pbp #(
 (
     input clk,
     input rst,
+	input load,
     
     /* inputs/outputs in IF stage */
     input rv32i_word if_pc,
@@ -55,7 +56,7 @@ ptable #(.w_bits(w_bits), .hist_len(hist_len)) perceptron_table (
     .perc1_out  (perc1_out),
     .r2_index   (exmem_pc[5:2]),
     .perc2_out  (perc2_out),
-    .wr_en      (pt_wr_en),
+    .wr_en      (pt_wr_en && load),
     .perc2_in   (perc2_in)
 );
 
@@ -63,7 +64,7 @@ ptable #(.w_bits(w_bits), .hist_len(hist_len)) perceptron_table (
 shift_reg #(.width(hist_len)) ghr (
     .clk    (clk), 
     .rst    (rst),
-    .load   (ghr_wr_en),
+    .load   (ghr_wr_en && load),
     .in     (exmem_br_en),
     .out    (global_history)
 );
@@ -149,7 +150,7 @@ btb #(.width(32)) btb (
     .r_pc       (if_pc),
     .target_out (btb_out),
     .w_pc       (exmem_pc),
-    .load       (exmem_opcode == rv32i_types::op_br),
+    .load       (exmem_opcode == rv32i_types::op_br && load),
     .target_in  (exmem_alu_out), 
     .btb_hit    (btb_hit)
 );
