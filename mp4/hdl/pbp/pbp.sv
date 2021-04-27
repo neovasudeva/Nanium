@@ -19,11 +19,11 @@ module pbp #(
     /* inputs/outputs in EX/MEM regs */
     input rv32i_word exmem_pc,
     input logic exmem_br_en,
-    input rv32i_word exmem_bp_target,
-    input logic [w_bits-1:0] exmem_y_out,
     input rv32i_types::opcode_t exmem_opcode,
     input rv32i_word exmem_alu_out,
-    input logic exmem_bp_br_en
+	input logic exmem_bp_br_en,
+	input logic [w_bits-1:0] exmem_y_out,
+    input rv32i_word exmem_bp_target
 );
 
 /********************************** SIGNALS **********************************/ 
@@ -31,14 +31,19 @@ module pbp #(
 logic [w_bits-1:0] perc1_out [hist_len + 1];
 logic [w_bits-1:0] perc2_out [hist_len + 1];
 logic [w_bits-1:0] perc2_in [hist_len + 1];
+logic [w_bits-1:0] perc1_hist_prod [hist_len + 1]; 
 
 // write enable signals for ghr and ptable
 logic pt_wr_en;
 logic ghr_wr_en;
 logic [hist_len-1:0] global_history;
 
+// absolute value of exmem_y_out
 logic [w_bits-1:0] abs_exmem_y_out; 
-assign abs_exmem_y_out = $signed(exmem_y_out) >= 0 ? exmem_y_out : (exmem_y_out ^ {w_bits{1'b1}}) + 1;
+assign abs_exmem_y_out = $signed(exmem_y_out) >= 0 ? exmem_y_out : (exmem_y_out ^ {w_bits{1'b1}}) + 8'b1;
+
+// btb
+rv32i_word btb_out;
 /*****************************************************************************/
 
 /******************************* LOGICAL UNITS *******************************/ 
@@ -86,11 +91,21 @@ end
 
 // bp_rst logic
 always_comb begin : BP_RST_LOGIC
-    // incorrect pred or incorrect target on prediction
-    if (exmem_opcode == rv32i_types::op_br && (exmem_bp_br_en != exmem_br_en || exmem_bp_target != exmem_alu_out))
-        bp_rst = 1'b1;
-    else
-        bp_rst = 1'b0;
+    if (exmem_opcode == rv32i_types::op_br) begin
+		// correct pred
+		if (exmem_bp_br_en == exmem_br_en) begin
+			if (exmem_br_en == 1'b0 || (exmem_br_en == 1'b1 && exmem_alu_out == exmem_bp_target))
+				bp_rst = 1'b0;
+			else
+				bp_rst = 1'b1;
+		end
+		
+		// incorrect pred
+		else 
+			bp_rst = 1'b1;
+	end
+	else 
+		bp_rst = 1'b0;
 end
 
 // ghr_wr_en logic 
@@ -104,7 +119,6 @@ end
 
 /******************************** EVALUATION *********************************/ 
 // calculate dot product
-logic [w_bits-1:0] perc1_hist_prod [hist_len + 1]; 
 always_comb begin
     for (int i = 0; i < hist_len; i++)
         perc1_hist_prod[i] = (global_history[i] == 1'b1) ? perc1_out[i] : (perc1_out[i] ^ {w_bits{1'b1}});
@@ -126,4 +140,21 @@ always_comb begin
 end
 /*****************************************************************************/
 
+
+/***************************** TARGET CALCULATION ****************************/ 
+// BTB
+btb #(.width(32)) btb (
+    .clk        (clk),
+    .rst        (rst),
+    .r_pc       (if_pc),
+    .target_out (btb_out),
+    .w_pc       (exmem_pc),
+    .load       (exmem_opcode == rv32i_types::op_br),
+    .target_in  (exmem_alu_out), 
+    .btb_hit    (btb_hit)
+);
+
+// bp_target calculation
+assign if_bp_target = (if_bp_br_en && btb_hit) ? btb_out : if_pc + 4;
+/*****************************************************************************/
 endmodule : pbp

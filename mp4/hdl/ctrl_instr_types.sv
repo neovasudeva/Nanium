@@ -38,3 +38,13 @@ typedef struct packed {
 	logic [31:0] s_imm;
 } instr_t;
 endpackage : instr_types
+
+// package contains struct(s) for perceptron branch prediction
+// size = 41
+package pbp_types;
+typedef struct packed {
+	logic [7:0] y_out;
+	logic bp_br_en;
+	logic [31:0] bp_target;
+} pbp_t;
+endpackage : pbp_types

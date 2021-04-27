@@ -87,15 +87,15 @@ initial begin
 
     @(posedge clk);
 
-    // collision (wrong pred)
-    if_pc = 32'h0000005c;
-    exmem_pc = 32'h0000005e;
+    // btb hit (correct prediction, wrong target)
+    if_pc = 32'h00000050;
+    exmem_pc = 32'h0000005c;
     exmem_br_en = 1'b1;
-    exmem_bp_br_en = 1'b0;
+    exmem_bp_br_en = 1'b1;
     exmem_bp_target = 32'hDEADBEEF;
-    exmem_alu_out = 32'hDEADBEEF;
+    exmem_alu_out = 32'hDEADA55B;
     exmem_opcode = rv32i_types::op_br;
-    exmem_y_out = 8'hF6;
+    exmem_y_out = 8'h42;
 
     @(posedge clk);
     #5000;
