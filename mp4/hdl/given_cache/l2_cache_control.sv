@@ -37,6 +37,9 @@ module l2_cache_control (
     output data_write_en_mux_sel_t way_write_en_sel[8]
 );
 
+int miss_count, miss_count_next;
+int tot_count, tot_count_next;
+
 enum int unsigned {
     /* List of states */
     IDLE,
@@ -145,10 +148,15 @@ begin : next_state_logic
     /* Next state information and conditions (if any)
      * for transitioning between states */
      next_state = state;
+	 
+	 miss_count_next = miss_count;
+	 tot_count_next = tot_count;
+	 
      unique case (state)
         IDLE: begin
             if (mem_read | mem_write) begin
                 next_state = COMPARE_TAG;
+				tot_count_next = tot_count + 1;
             end
         end
         COMPARE_TAG: begin
@@ -157,9 +165,11 @@ begin : next_state_logic
             end
             else if (~dirty_out[plru]) begin
                 next_state = ALLOCATE;
+				miss_count_next = miss_count + 1;
             end
             else begin
                 next_state = WRITE_BACK;
+				miss_count_next = miss_count + 1;
             end
         end
         ALLOCATE: begin
@@ -181,6 +191,9 @@ begin: next_state_assignment
     /* Assignment of next state on clock edge */
     if (rst) state <= IDLE;
     else state <= next_state;
+	
+	miss_count <= rst ? 0 : miss_count_next;
+	tot_count <= rst ? 0 : tot_count_next;
 end
 
 endmodule : l2_cache_control

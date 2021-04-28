@@ -144,6 +144,8 @@ Please refer to tb_itf.sv for more information.
 // Set this to the proper value
 assign itf.registers = dut.datapath.id_stage.regfile.data; 
 
+assign itf.miss_count = dut.caches.l2_cache.control.miss_count;
+assign itf.tot_count = dut.caches.l2_cache.control.tot_count;
 
 /*********************** Instantiate your design here ************************/
 /*

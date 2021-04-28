@@ -47,6 +47,9 @@ interface tb_itf();
     logic [63:0] mem_wdata;
     logic mem_resp;
     logic [63:0] mem_rdata;
+	
+	int miss_count;
+	int tot_count;
 
     /* Mailbox for memory path */
     mailbox #(string) path_mb;
