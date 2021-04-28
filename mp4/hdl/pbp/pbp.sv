@@ -49,12 +49,12 @@ rv32i_word btb_out;
 
 /******************************* LOGICAL UNITS *******************************/ 
 // perceptron table
-ptable #(.w_bits(w_bits), .hist_len(hist_len)) perceptron_table (
+ptable #(.w_bits(w_bits), .hist_len(hist_len), .b_sets(5)) perceptron_table (
     .clk        (clk),
     .rst        (rst),
-    .r1_index   (if_pc[5:2]),
+    .r1_index   (if_pc[6:2]),
     .perc1_out  (perc1_out),
-    .r2_index   (exmem_pc[5:2]),
+    .r2_index   (exmem_pc[6:2]),
     .perc2_out  (perc2_out),
     .wr_en      (pt_wr_en && load),
     .perc2_in   (perc2_in)

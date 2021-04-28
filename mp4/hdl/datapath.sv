@@ -130,9 +130,9 @@ int br_wrong = 0;
 int br_total = 0;
 
 always_ff @(posedge clk) begin
-	if (exmem_instruction.opcode == rv32i_types::op_br)
+	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
 		br_total <= br_total + 1;
-	if (branch_rst && exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
+	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && bp_rst)
 		br_wrong <= br_wrong + 1;
 end
 /*****************************************************************************/ 
