@@ -7,10 +7,8 @@ module l2_array #(
 (
     clk,
     rst,
-    read,
     load,
-    rindex,
-    windex,
+    index,
     datain,
     dataout
 );
@@ -19,16 +17,14 @@ localparam num_sets = 2**s_index;
 
 input clk;
 input rst;
-input read;
 input load;
-input [s_index-1:0] rindex;
-input [s_index-1:0] windex;
+input [s_index-1:0] index;
 input [width-1:0] datain;
 output logic [width-1:0] dataout;
 
 logic [width-1:0] data [num_sets-1:0] /* synthesis ramstyle = "logic" */;
-logic [width-1:0] _dataout;
-assign dataout = _dataout;
+//logic [width-1:0] _dataout;
+assign dataout = (load) ? datain : data[index];
 
 always_ff @(posedge clk)
 begin
@@ -37,11 +33,10 @@ begin
             data[i] <= '0;
     end
     else begin
-        if (read)
-            _dataout <= (load  & (rindex == windex)) ? datain : data[rindex];
+//        _dataout <= (load) ? datain : data[index];
 
         if(load)
-            data[windex] <= datain;
+            data[index] <= datain;
     end
 end
 

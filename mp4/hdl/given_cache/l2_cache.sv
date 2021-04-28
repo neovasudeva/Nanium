@@ -18,7 +18,6 @@ module l2_cache #(
     // Port to CPU
     input logic mem_read,
     input logic mem_write,
-    input logic [3:0] mem_byte_enable,
     input rv32i_word mem_address,
     input logic [255:0] mem_wdata,
     output logic mem_resp,
@@ -49,27 +48,16 @@ logic [7:0] way_hit;
 
 logic [2:0] way_sel;
 pmem_addr_mux_sel_t pmem_address_sel;
-data_in_mux_sel_t way_data_in_sel[8];
+data_in_mux_sel_t way_data_in_sel;
 data_write_en_mux_sel_t way_write_en_sel[8];
 
-logic [255:0] mem_rdata256;
-logic [255:0] mem_wdata256;
-logic [31:0] mem_byte_enable256;
-
 logic [255:0] cache_o;
-assign mem_rdata256 = cache_o;
+assign mem_rdata = cache_o;
 assign pmem_wdata = cache_o;
 
 l2_cache_control control(.*);
 
 l2_cache_datapath datapath(.*);
 
-//bus_adapter bus_adapter(.address(mem_address), .*);
-//assign mem_wdata256 = {8{mem_wdata}};
-//assign mem_rdata = mem_rdata256[(32*mem_address[4:2]) +: 32];
-//assign mem_byte_enable256 = {28'h0, mem_byte_enable} << (mem_address[4:2]*4);
-assign mem_wdata256 = mem_wdata;
-assign mem_rdata = mem_rdata256;
-assign mem_byte_enable256 = 32'hFFFFFFFF;
 
 endmodule : l2_cache

@@ -20,9 +20,8 @@ typedef enum bit {
 endpackage
 
 package data_write_en_mux;
-typedef enum bit [1:0]{
-    idle  = 2'b00
-    ,load_mem = 2'b01
-    ,cpu_write = 2'b10
+typedef enum bit {
+    idle  = 1'b0
+    ,load_mem = 1'b1
 } data_write_en_mux_sel_t;
 endpackage

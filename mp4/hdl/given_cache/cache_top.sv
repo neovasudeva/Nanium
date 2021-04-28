@@ -133,7 +133,6 @@ l2_cache l2_cache (
 	.rst(rst),
 	.mem_read(l2mem_read),
     .mem_write(l2mem_write),
-    .mem_byte_enable(4'b1111),
     .mem_address(l2mem_address),
     .mem_wdata(l2mem_wdata),
     .mem_resp(l2mem_resp),
