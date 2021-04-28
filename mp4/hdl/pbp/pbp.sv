@@ -76,7 +76,7 @@ always_comb begin : TRAINING_LOGIC
     if (exmem_opcode == rv32i_types::op_br) begin
         // correct pred
         if (exmem_bp_br_en == exmem_br_en) begin
-            if (abs_exmem_y_out < 37)
+            if (abs_exmem_y_out <= 37)
                 pt_wr_en = 1'b1;
             else
                 pt_wr_en = 1'b0;
@@ -122,13 +122,13 @@ end
 // calculate dot product
 always_comb begin
     for (int i = 0; i < hist_len; i++)
-        perc1_hist_prod[i] = (global_history[i] == 1'b1) ? perc1_out[i] : (perc1_out[i] ^ {w_bits{1'b1}});
+        perc1_hist_prod[i] = (global_history[i] == 1'b1) ? perc1_out[i] : (perc1_out[i] ^ {w_bits{1'b1}}) + 1;
     
     perc1_hist_prod[hist_len] = perc1_out[hist_len];
 end
 
 assign if_y_out = perc1_hist_prod.sum();
-assign if_bp_br_en = $signed(if_y_out) > 0 ? 1'b1 : 1'b0;
+assign if_bp_br_en = $signed(if_y_out) > 0;
 /*****************************************************************************/
 
 /********************************* TRAINING **********************************/ 

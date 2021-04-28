@@ -53,8 +53,8 @@ initial begin
 
 	//$display("%0b", ($signed(8'hff) < 8'h00));
 	//$display("%0h", data[1].sum with (item[7] == 1 ? 8'b1 : item));
-	$display("%0h", $signed(8'hFB) >= 0 ? 8'hFB : (8'hFB ^ {8{1'b1}}) + 1);
-	//$display("%0h", data[0][0] + 8'hFF);
+	//$display("%0h", $signed(8'hFB) >= 0 ? 8'hFB : (8'hFB ^ {8{1'b1}}) + 1);
+	$display("%0h", $signed(8'hff) > 0);
 	$finish;
 end
 

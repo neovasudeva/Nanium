@@ -128,12 +128,15 @@ assign icache_addr = if_pc;
 /******************************** PERF COUNTERS ******************************/ 
 int br_wrong = 0;
 int br_total = 0;
+int br_wrong_guess = 0;
 
 always_ff @(posedge clk) begin
 	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
 		br_total <= br_total + 1;
 	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && bp_rst)
 		br_wrong <= br_wrong + 1;
+    if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && exmem_pbp.bp_br_en != exmem_br_en)
+		br_wrong_guess <= br_wrong_guess + 1;
 end
 /*****************************************************************************/ 
 

@@ -51,6 +51,7 @@ interface tb_itf();
 	/* Performance Counters */
 	int br_wrong;
 	int br_total; 
+    int br_wrong_guess;
 
     /* Mailbox for memory path */
     mailbox #(string) path_mb;
