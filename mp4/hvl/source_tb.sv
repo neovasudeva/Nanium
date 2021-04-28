@@ -32,6 +32,7 @@ int timeout = 100000000;
 
 always @(posedge tb_itf.clk) begin
     if (rvfi.halt) begin
+        $display("num_btb_hit: %d; ", itf.num_btb_hit);
         $display("br_wrong_guess: %d; ", itf.br_wrong_guess);
 		$display("br_wrong: %d; ", itf.br_wrong);
 		$display("br_correct: %d; ", itf.br_total - itf.br_wrong);

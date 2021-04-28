@@ -148,6 +148,7 @@ assign itf.registers = dut.datapath.id_stage.regfile.data;
 assign itf.br_wrong = dut.datapath.br_wrong;
 assign itf.br_total = dut.datapath.br_total;
 assign itf.br_wrong_guess = dut.datapath.br_wrong_guess;
+assign itf.num_btb_hit = dut.datapath.num_btb_hit;
 /*********************** Instantiate your design here ************************/
 /*
 The following signals need to be connected to your top level:

@@ -129,6 +129,7 @@ assign icache_addr = if_pc;
 int br_wrong = 0;
 int br_total = 0;
 int br_wrong_guess = 0;
+int num_btb_hit = 0;
 
 always_ff @(posedge clk) begin
 	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
@@ -137,6 +138,8 @@ always_ff @(posedge clk) begin
 		br_wrong <= br_wrong + 1;
     if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && exmem_pbp.bp_br_en != exmem_br_en)
 		br_wrong_guess <= br_wrong_guess + 1;
+    if (if_instruction.opcode == rv32i_types::op_br && ~cache_stall && ~forward_stall && btb_hit == 1'b1)
+        num_btb_hit <= num_btb_hit + 1;
 end
 /*****************************************************************************/ 
 

@@ -52,6 +52,7 @@ interface tb_itf();
 	int br_wrong;
 	int br_total; 
     int br_wrong_guess;
+    int num_btb_hit;
 
     /* Mailbox for memory path */
     mailbox #(string) path_mb;
