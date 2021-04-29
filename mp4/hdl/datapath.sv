@@ -3,6 +3,7 @@
 import rv32i_types::*;
 import ctrl_types::*;
 import instr_types::*;
+import pbp_types::*;
 import pcmux::*;
 import cmpmux::*;
 import alumux::*;
@@ -81,6 +82,14 @@ rs1mux_sel_t rs1mux_sel;
 rs2mux_sel_t rs2mux_sel;
 dcacheforwardmux_sel_t dcacheforwardmux_sel;
 rv32i_word rs2mux_out;
+
+// btb and perceptron signals
+pbp_types::pbp_t if_pbp;
+pbp_types::pbp_t ifid_pbp;
+pbp_types::pbp_t idex_pbp;
+pbp_types::pbp_t exmem_pbp;
+logic bp_rst;
+logic btb_hit;
 /*****************************************************************************/
 
 /**************************** LOAD/STALL SIGNALS ******************************/ 
@@ -94,7 +103,7 @@ logic cache_stall;
 logic branch_rst;
 assign cache_stall = ((dcache_read || dcache_write) && ~dcache_resp) || 
                      ((icache_read) && ~icache_resp);
-assign branch_rst = (exmem_br_en && exmem_instruction.opcode == rv32i_types::op_br) || 
+assign branch_rst = (bp_rst) || 
                     (exmem_instruction.opcode == rv32i_types::op_jal) || 
                     (exmem_instruction.opcode == rv32i_types::op_jalr);
 					
@@ -116,6 +125,24 @@ assign icache_read = 1'b1; // always read, change later
 assign icache_addr = if_pc;
 /*****************************************************************************/ 
 
+/******************************** PERF COUNTERS ******************************/ 
+int br_wrong = 0;
+int br_total = 0;
+int br_wrong_guess = 0;
+int num_btb_hit = 0;
+
+always_ff @(posedge clk) begin
+	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
+		br_total <= br_total + 1;
+	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && bp_rst)
+		br_wrong <= br_wrong + 1;
+    if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && exmem_pbp.bp_br_en != exmem_br_en)
+		br_wrong_guess <= br_wrong_guess + 1;
+    if (if_instruction.opcode == rv32i_types::op_br && ~cache_stall && ~forward_stall && btb_hit == 1'b1)
+        num_btb_hit <= num_btb_hit + 1;
+end
+/*****************************************************************************/ 
+
 /******************************* PIPELINE REGS *******************************/
 /* Instruction Fetch Registers */
 pc_register if_pc_reg (
@@ -133,7 +160,9 @@ ifid_reg ifid_pipe (
     .if_instruction     (if_instruction),
     .ifid_instruction   (ifid_instruction),
     .if_pc              (if_pc),
-    .ifid_pc            (ifid_pc)
+    .ifid_pc            (ifid_pc),
+	.if_pbp				(if_pbp),
+	.ifid_pbp			(ifid_pbp)
 );
 
 id_stage id_stage(
@@ -163,7 +192,9 @@ idex_reg idex_pipe(
     .id_rs1_out         (id_rs1_out),
     .idex_rs1_out       (idex_rs1_out),
     .id_rs2_out         (id_rs2_out),
-    .idex_rs2_out       (idex_rs2_out)
+    .idex_rs2_out       (idex_rs2_out),
+	.ifid_pbp			(ifid_pbp),
+	.idex_pbp			(idex_pbp)
 );
 
 ex_stage ex_stage(
@@ -199,7 +230,9 @@ exmem_reg exmem_pipe(
     .idex_rs2_out       (rs2mux_out /*idex_rs2_out*/),
     .exmem_rs2_out      (exmem_rs2_out),
     .idex_instruction   (idex_instruction),
-    .exmem_instruction  (exmem_instruction)
+    .exmem_instruction  (exmem_instruction),
+	.idex_pbp			(idex_pbp),
+	.exmem_pbp			(exmem_pbp)
 );
 
 mem_stage mem_stage (
@@ -277,6 +310,26 @@ forward forwarding_unit (
     .dcacheforwardmux_sel (dcacheforwardmux_sel),
     .forward_stall        (forward_stall)
 );
+
+// perceptron branch prediction
+pbp #(.w_bits(8), .hist_len(12)) pbp (
+	.clk				(clk),
+	.rst				(rst),
+	.load				(~cache_stall),		// only load new perceptrons/btb/regs on no cache_stall
+	.if_pc				(if_pc),
+    .if_bp_br_en		(if_pbp.bp_br_en),
+    .if_y_out			(if_pbp.y_out),	
+    .if_bp_target		(if_pbp.bp_target),
+    .btb_hit			(btb_hit),
+    .bp_rst				(bp_rst),
+    .exmem_pc			(exmem_pc),
+    .exmem_br_en		(exmem_br_en),
+    .exmem_opcode		(exmem_instruction.opcode),
+    .exmem_alu_out		(exmem_alu_out),
+	.exmem_bp_br_en		(exmem_pbp.bp_br_en),
+	.exmem_y_out		(exmem_pbp.y_out),
+    .exmem_bp_target	(exmem_pbp.bp_target)
+);
 /*****************************************************************************/
 
 /******************************** Muxes **************************************/
@@ -285,10 +338,19 @@ always_comb begin
     if (branch_rst) begin    
         // jal and jalr case
         if (exmem_instruction.opcode == rv32i_types::op_jal || exmem_instruction.opcode == rv32i_types::op_jalr)
-            pcmux_out = {exmem_alu_out[31:1], 1'b0};     
-        else
-            pcmux_out = exmem_alu_out;
+            pcmux_out = {exmem_alu_out[31:1], 1'b0};    
+		
+		// branch was predicted wrong
+        else begin
+			if (exmem_br_en)
+				pcmux_out = exmem_alu_out;
+			else 
+				pcmux_out = exmem_pc + 4;
+		end
+		
     end
+	else if (if_pbp.bp_br_en && btb_hit)
+		pcmux_out = if_pbp.bp_target;
     else    
         pcmux_out = if_pc + 4;
 end

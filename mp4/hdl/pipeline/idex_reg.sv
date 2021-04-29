@@ -1,6 +1,7 @@
 import rv32i_types::*;
 import instr_types::*;
 import ctrl_types::*;
+import pbp_types::*;
 
 module idex_reg(
     input clk,
@@ -17,7 +18,9 @@ module idex_reg(
     input rv32i_word id_rs1_out,
     output rv32i_word idex_rs1_out,
     input rv32i_word id_rs2_out,
-    output rv32i_word idex_rs2_out
+    output rv32i_word idex_rs2_out,
+	input pbp_types::pbp_t ifid_pbp,
+	output pbp_types::pbp_t idex_pbp
 );
 
 // ID / EX Registers 
@@ -59,6 +62,14 @@ register idex_rs2_out_reg(
     .load   (idex_load),
     .in     (id_rs2_out),
     .out    (idex_rs2_out)
+);
+
+register #(.width(41)) idex_pbp_reg (
+	.clk    (clk),
+    .rst    (idex_rst),
+    .load   (idex_load),
+    .in     (ifid_pbp),
+    .out    (idex_pbp)
 );
 
 endmodule : idex_reg

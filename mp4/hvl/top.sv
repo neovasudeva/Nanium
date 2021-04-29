@@ -144,9 +144,13 @@ Please refer to tb_itf.sv for more information.
 // Set this to the proper value
 assign itf.registers = dut.datapath.id_stage.regfile.data; 
 
+/* perf counters */
+assign itf.br_wrong = dut.datapath.br_wrong;
+assign itf.br_total = dut.datapath.br_total;
+assign itf.br_wrong_guess = dut.datapath.br_wrong_guess;
+assign itf.num_btb_hit = dut.datapath.num_btb_hit;
 assign itf.miss_count = dut.caches.l2_cache.control.miss_count;
 assign itf.tot_count = dut.caches.l2_cache.control.tot_count;
-
 /*********************** Instantiate your design here ************************/
 /*
 The following signals need to be connected to your top level:
@@ -176,6 +180,7 @@ mp4 dut(
 	.pmem_rdata(itf.mem_rdata),
 	.pmem_resp(itf.mem_resp)
 );
+
 /***************************** End Instantiation *****************************/
 
 endmodule

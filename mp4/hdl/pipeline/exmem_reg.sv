@@ -1,6 +1,7 @@
 import rv32i_types::*;
 import instr_types::*;
 import ctrl_types::*;
+import pbp_types::*;
 
 module exmem_reg(
     input clk,
@@ -19,7 +20,9 @@ module exmem_reg(
     input rv32i_word idex_rs2_out,
     output rv32i_word exmem_rs2_out,
     input instr_types::instr_t idex_instruction,
-    output instr_types::instr_t exmem_instruction
+    output instr_types::instr_t exmem_instruction,
+	input pbp_types::pbp_t idex_pbp,
+	output pbp_types::pbp_t exmem_pbp
 );
 
 // EX / MEM Registers
@@ -69,6 +72,14 @@ register #(.width(192)) exmem_instr_reg(
     .load   (exmem_load),
     .in     (idex_instruction),
     .out    (exmem_instruction)
+);
+
+register #(.width(41)) exmem_pbp_reg (
+	.clk    (clk),
+    .rst    (exmem_rst),
+    .load   (exmem_load),
+    .in     (idex_pbp),
+    .out    (exmem_pbp)
 );
 
 endmodule : exmem_reg

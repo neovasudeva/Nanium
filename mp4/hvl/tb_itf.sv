@@ -48,6 +48,11 @@ interface tb_itf();
     logic mem_resp;
     logic [63:0] mem_rdata;
 	
+	/* Performance Counters */
+	int br_wrong;
+	int br_total; 
+    int br_wrong_guess;
+    int num_btb_hit;
 	int miss_count;
 	int tot_count;
 
