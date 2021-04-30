@@ -103,9 +103,10 @@ logic cache_stall;
 logic branch_rst;
 assign cache_stall = ((dcache_read || dcache_write) && ~dcache_resp) || 
                      ((icache_read) && ~icache_resp);
-assign branch_rst = (bp_rst) || 
+assign branch_rst = bp_rst || exmem_instruction.opcode == rv32i_types::op_jalr; 
+                    /*(bp_rst) || 
                     (exmem_instruction.opcode == rv32i_types::op_jal) || 
-                    (exmem_instruction.opcode == rv32i_types::op_jalr);
+                    (exmem_instruction.opcode == rv32i_types::op_jalr);*/
 					
 // loads and reset
 assign pc_load = ~forward_stall && ~cache_stall;
@@ -317,6 +318,7 @@ pbp #(.w_bits(8), .hist_len(12)) pbp (
 	.rst				(rst),
 	.load				(~cache_stall),		// only load new perceptrons/btb/regs on no cache_stall
 	.if_pc				(if_pc),
+    .if_opcode          (if_instruction.opcode),
     .if_bp_br_en		(if_pbp.bp_br_en),
     .if_y_out			(if_pbp.y_out),	
     .if_bp_target		(if_pbp.bp_target),
@@ -347,10 +349,11 @@ always_comb begin
 			else 
 				pcmux_out = exmem_pc + 4;
 		end
-		
     end
-	else if (if_pbp.bp_br_en && btb_hit)
+	else if (if_instruction.opcode == rv32i_types::op_br && if_pbp.bp_br_en && btb_hit)
 		pcmux_out = if_pbp.bp_target;
+    else if (if_instruction.opcode == rv32i_types::op_jal && btb_hit)
+        pcmux_out = if_pbp.bp_target;
     else    
         pcmux_out = if_pc + 4;
 end

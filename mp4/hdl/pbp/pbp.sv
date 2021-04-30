@@ -11,6 +11,7 @@ module pbp #(
     
     /* inputs/outputs in IF stage */
     input rv32i_word if_pc,
+    input rv32i_types::opcode_t if_opcode,
     output logic if_bp_br_en,
     output logic [w_bits-1:0] if_y_out,
     output rv32i_word if_bp_target,
@@ -105,6 +106,11 @@ always_comb begin : BP_RST_LOGIC
 		else 
 			bp_rst = 1'b1;
 	end
+    else if (exmem_opcode == rv32i_types::op_jal)
+        if (exmem_alu_out != exmem_bp_target)
+            bp_rst = 1'b1;
+        else
+            bp_rst = 1'b0;
 	else 
 		bp_rst = 1'b0;
 end
@@ -150,12 +156,21 @@ btb #(.width(32)) btb (
     .r_pc       (if_pc),
     .target_out (btb_out),
     .w_pc       (exmem_pc),
-    .load       (exmem_opcode == rv32i_types::op_br && load),
+    .load       ((exmem_opcode == rv32i_types::op_br || exmem_opcode == rv32i_types::op_jal) && load),
     .target_in  (exmem_alu_out), 
     .btb_hit    (btb_hit)
 );
 
 // bp_target calculation
-assign if_bp_target = (if_bp_br_en && btb_hit) ? btb_out : if_pc + 4;
+//assign if_bp_target = (if_bp_br_en && btb_hit) ? btb_out : if_pc + 4;
+always_comb begin
+    if (if_opcode == rv32i_types::op_br)
+        if_bp_target = (if_bp_br_en && btb_hit) ? btb_out : if_pc + 4;
+    else if (if_opcode == rv32i_types::op_jal)
+        if_bp_target = (btb_hit) ? btb_out : if_pc + 4;
+    else
+        if_bp_target = if_pc + 4;
+
+end
 /*****************************************************************************/
 endmodule : pbp
