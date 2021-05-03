@@ -23,8 +23,7 @@ input [width-1:0] datain;
 output logic [width-1:0] dataout;
 
 logic [width-1:0] data [num_sets-1:0] /* synthesis ramstyle = "logic" */;
-//logic [width-1:0] _dataout;
-assign dataout = (load) ? datain : data[index];
+assign dataout = data[index];
 
 always_ff @(posedge clk)
 begin
@@ -33,8 +32,6 @@ begin
             data[i] <= '0;
     end
     else begin
-//        _dataout <= (load) ? datain : data[index];
-
         if(load)
             data[index] <= datain;
     end
