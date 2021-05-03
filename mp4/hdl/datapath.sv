@@ -127,20 +127,33 @@ assign icache_addr = if_pc;
 /*****************************************************************************/ 
 
 /******************************** PERF COUNTERS ******************************/ 
-int br_wrong = 0;
-int br_total = 0;
-int br_wrong_guess = 0;
+int cbr_wrong = 0;
+int cbr_total = 0;
+int ubr_wrong = 0;
+int ubr_total = 0;
 int num_btb_hit = 0;
+int num_btb_req = 0;
 
 always_ff @(posedge clk) begin
-	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
-		br_total <= br_total + 1;
+	// conditional branches
 	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && bp_rst)
-		br_wrong <= br_wrong + 1;
-    if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && exmem_pbp.bp_br_en != exmem_br_en)
-		br_wrong_guess <= br_wrong_guess + 1;
-    if (if_instruction.opcode == rv32i_types::op_br && ~cache_stall && ~forward_stall && btb_hit == 1'b1)
+		cbr_wrong <= cbr_wrong + 1;
+	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
+		cbr_total <= cbr_total + 1;
+		
+	// unconditional and conditional branches
+	if ((exmem_instruction.opcode == rv32i_types::op_br || exmem_instruction.opcode == rv32i_types::op_jal || 
+		exmem_instruction.opcode == rv32i_types::op_jalr) && ~cache_stall)
+		ubr_total <= ubr_total + 1;
+	if ((exmem_instruction.opcode == rv32i_types::op_br || exmem_instruction.opcode == rv32i_types::op_jal || 
+		exmem_instruction.opcode == rv32i_types::op_jalr) && ~cache_stall && bp_rst)
+		ubr_wrong <= ubr_wrong + 1;
+		
+	// btb counters
+    if ((if_instruction.opcode == rv32i_types::op_br || if_instruction.opcode == rv32i_types::op_jal) && ~cache_stall && ~forward_stall && btb_hit)
         num_btb_hit <= num_btb_hit + 1;
+	if ((if_instruction.opcode == rv32i_types::op_br || if_instruction.opcode == rv32i_types::op_jal) && ~cache_stall && ~forward_stall)
+		num_btb_req <= num_btb_req + 1;
 end
 /*****************************************************************************/ 
 

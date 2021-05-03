@@ -49,11 +49,13 @@ interface tb_itf();
     logic [63:0] mem_rdata;
 	
 	/* Performance Counters */
-	int br_wrong;
-	int br_total; 
-    int br_wrong_guess;
-    int num_btb_hit;
-
+	int cbr_wrong;
+	int cbr_total;
+	int ubr_wrong;
+	int ubr_total;
+	int num_btb_hit;
+	int num_btb_req;
+	
     /* Mailbox for memory path */
     mailbox #(string) path_mb;
     initial path_mb = new();

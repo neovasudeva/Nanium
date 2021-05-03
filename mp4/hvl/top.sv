@@ -145,10 +145,12 @@ Please refer to tb_itf.sv for more information.
 assign itf.registers = dut.datapath.id_stage.regfile.data; 
 
 /* perf counters */
-assign itf.br_wrong = dut.datapath.br_wrong;
-assign itf.br_total = dut.datapath.br_total;
-assign itf.br_wrong_guess = dut.datapath.br_wrong_guess;
+assign itf.cbr_wrong = dut.datapath.cbr_wrong;
+assign itf.cbr_total = dut.datapath.cbr_total;
+assign itf.ubr_wrong = dut.datapath.ubr_wrong;
+assign itf.ubr_total = dut.datapath.ubr_total;
 assign itf.num_btb_hit = dut.datapath.num_btb_hit;
+assign itf.num_btb_req = dut.datapath.num_btb_req;
 /*********************** Instantiate your design here ************************/
 /*
 The following signals need to be connected to your top level:
