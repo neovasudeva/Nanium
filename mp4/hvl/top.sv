@@ -183,4 +183,12 @@ mp4 dut(
 
 /***************************** End Instantiation *****************************/
 
+always_comb begin
+	$dumpfile("cmp.vcd");
+	$dumpvars();
+	$dumpvars(0, dut);
+	$dumplimit(10000);
+	$dumpon; 
+end
+
 endmodule
