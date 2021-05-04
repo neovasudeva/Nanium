@@ -1,10 +1,3 @@
-`define BAD_MUX_SEL $fatal("%0t %s %0d: Illegal mux select", $time, `__FILE__, `__LINE__)
-
-import rv32i_types::*;
-import pmem_addr_mux::*;
-import data_in_mux::*;
-import data_write_en_mux::*;
-
 module l2_cache_datapath #(
     parameter s_offset = 5,
     parameter s_index  = 3,
@@ -17,358 +10,99 @@ module l2_cache_datapath #(
     input clk,
     input rst,
 
-    input rv32i_word mem_address,
+    input logic [31:0] mem_address,
 
     input logic [255:0] pmem_rdata,
-    output rv32i_word pmem_address,
+    output logic [31:0] pmem_address,
 
     input logic [255:0] mem_wdata,
 
     output logic [255:0] cache_o,
 
-    input logic [7:0] way_load,
-    input logic [7:0] valid_load,
+    input logic [7:0] tag_load,
+    input logic valid_load,
     input logic [7:0] valid_in,
-    input logic [7:0] dirty_load,
+    input logic dirty_load,
     input logic [7:0] dirty_in,
     input logic lru_load,
     input logic [2:0] mru,
-    output logic [23:0] way_out[8],
+
     output logic [7:0] valid_out,
     output logic [7:0] dirty_out,
     output logic [2:0] plru,
-	
-	output logic hit,
+
     output logic [7:0] way_hit,
 
     input logic [2:0] way_sel,
-    input pmem_addr_mux_sel_t pmem_address_sel,
-    input data_in_mux_sel_t way_data_in_sel,
-    input data_write_en_mux_sel_t way_write_en_sel[8]
+
+    input logic way_data_in_sel,
+    input logic [7:0] data_write_en
 );
 
-//logic [7:0] data_array_write_en;
 logic [255:0] data_array_in;
-logic [7:0][255:0] data_array_out;
+logic [255:0] data_array_out [8];
+logic [23:0] tag_out [8];
 
-l2_array #(.s_index(3), .width(24)) tag_0(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[0]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[0])
-);
-l2_array #(.s_index(3), .width(1)) valid_0(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[0]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[0]),
-    .dataout(valid_out[0])
-);
-l2_array #(.s_index(3), .width(1)) dirty_0(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[0]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[0]),
-    .dataout(dirty_out[0])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_0(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[0]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[0])
-);
+logic [2:0] set;
+logic [23:0] tag;
+assign set = mem_address[7:5];
+assign tag = mem_address[31:8];
 
-l2_array #(.s_index(3), .width(24)) tag_1(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[1]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[1])
-);
-l2_array #(.s_index(3), .width(1)) valid_1(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[1]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[1]),
-    .dataout(valid_out[1])
-);
-l2_array #(.s_index(3), .width(1)) dirty_1(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[1]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[1]),
-    .dataout(dirty_out[1])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_1(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[1]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[1])
-);
+l2_array #(.width(24)) tag_0(.clk(clk), .rst(), .load(tag_load[0]), .index(set), .datain(tag), .dataout(tag_out[0]));
+l2_array #(.width(1)) valid_0(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[0]), .index(set), .dataout(valid_out[0]));
+l2_array #(.width(1)) dirty_0(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[0]), .index(set), .dataout(dirty_out[0]));
+l2_data_array data_array_0(.clk(clk), .rst(), .write_en(data_write_en[0]), .index(set), .datain(data_array_in), .dataout(data_array_out[0]));
 
-l2_array #(.s_index(3), .width(24)) tag_2(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[2]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[2])
-);
-l2_array #(.s_index(3), .width(1)) valid_2(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[2]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[2]),
-    .dataout(valid_out[2])
-);
-l2_array #(.s_index(3), .width(1)) dirty_2(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[2]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[2]),
-    .dataout(dirty_out[2])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_2(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[2]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[2])
-);
+l2_array #(.width(24)) tag_1(.clk(clk), .rst(), .load(tag_load[1]), .index(set), .datain(tag), .dataout(tag_out[1]));
+l2_array #(.width(1)) valid_1(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[1]), .index(set), .dataout(valid_out[1]));
+l2_array #(.width(1)) dirty_1(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[1]), .index(set), .dataout(dirty_out[1]));
+l2_data_array data_array_1(.clk(clk), .rst(), .write_en(data_write_en[1]), .index(set), .datain(data_array_in), .dataout(data_array_out[1]));
 
-l2_array #(.s_index(3), .width(24)) tag_3(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[3]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[3])
-);
-l2_array #(.s_index(3), .width(1)) valid_3(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[3]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[3]),
-    .dataout(valid_out[3])
-);
-l2_array #(.s_index(3), .width(1)) dirty_3(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[3]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[3]),
-    .dataout(dirty_out[3])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_3(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[3]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[3])
-);
+l2_array #(.width(24)) tag_2(.clk(clk), .rst(), .load(tag_load[2]), .index(set), .datain(tag), .dataout(tag_out[2]));
+l2_array #(.width(1)) valid_2(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[2]), .index(set), .dataout(valid_out[2]));
+l2_array #(.width(1)) dirty_2(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[2]), .index(set), .dataout(dirty_out[2]));
+l2_data_array data_array_2(.clk(clk), .rst(), .write_en(data_write_en[2]), .index(set), .datain(data_array_in), .dataout(data_array_out[2]));
 
-l2_array #(.s_index(3), .width(24)) tag_4(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[4]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[4])
-);
-l2_array #(.s_index(3), .width(1)) valid_4(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[4]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[4]),
-    .dataout(valid_out[4])
-);
-l2_array #(.s_index(3), .width(1)) dirty_4(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[4]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[4]),
-    .dataout(dirty_out[4])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_4(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[4]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[4])
-);
+l2_array #(.width(24)) tag_3(.clk(clk), .rst(), .load(tag_load[3]), .index(set), .datain(tag), .dataout(tag_out[3]));
+l2_array #(.width(1)) valid_3(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[3]), .index(set), .dataout(valid_out[3]));
+l2_array #(.width(1)) dirty_3(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[3]), .index(set), .dataout(dirty_out[3]));
+l2_data_array data_array_3(.clk(clk), .rst(), .write_en(data_write_en[3]), .index(set), .datain(data_array_in), .dataout(data_array_out[3]));
 
-l2_array #(.s_index(3), .width(24)) tag_5(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[5]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[5])
-);
-l2_array #(.s_index(3), .width(1)) valid_5(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[5]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[5]),
-    .dataout(valid_out[5])
-);
-l2_array #(.s_index(3), .width(1)) dirty_5(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[5]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[5]),
-    .dataout(dirty_out[5])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_5(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[5]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[5])
-);
+l2_array #(.width(24)) tag_4(.clk(clk), .rst(), .load(tag_load[4]), .index(set), .datain(tag), .dataout(tag_out[4]));
+l2_array #(.width(1)) valid_4(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[4]), .index(set), .dataout(valid_out[4]));
+l2_array #(.width(1)) dirty_4(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[4]), .index(set), .dataout(dirty_out[4]));
+l2_data_array data_array_4(.clk(clk), .rst(), .write_en(data_write_en[4]), .index(set), .datain(data_array_in), .dataout(data_array_out[4]));
 
-l2_array #(.s_index(3), .width(24)) tag_6(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[6]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[6])
-);
-l2_array #(.s_index(3), .width(1)) valid_6(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[6]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[6]),
-    .dataout(valid_out[6])
-);
-l2_array #(.s_index(3), .width(1)) dirty_6(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[6]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[6]),
-    .dataout(dirty_out[6])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_6(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[6]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[6])
-);
+l2_array #(.width(24)) tag_5(.clk(clk), .rst(), .load(tag_load[5]), .index(set), .datain(tag), .dataout(tag_out[5]));
+l2_array #(.width(1)) valid_5(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[5]), .index(set), .dataout(valid_out[5]));
+l2_array #(.width(1)) dirty_5(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[5]), .index(set), .dataout(dirty_out[5]));
+l2_data_array data_array_5(.clk(clk), .rst(), .write_en(data_write_en[5]), .index(set), .datain(data_array_in), .dataout(data_array_out[5]));
 
-l2_array #(.s_index(3), .width(24)) tag_7(
-    .clk(clk),
-    .rst(rst),
-    .load(way_load[7]),
-    .index(mem_address[7:5]),
-    .datain(mem_address[31:8]),
-    .dataout(way_out[7])
-);
-l2_array #(.s_index(3), .width(1)) valid_7(
-    .clk(clk),
-    .rst(rst),
-    .load(valid_load[7]),
-    .index(mem_address[7:5]),
-    .datain(valid_in[7]),
-    .dataout(valid_out[7])
-);
-l2_array #(.s_index(3), .width(1)) dirty_7(
-    .clk(clk),
-    .rst(rst),
-    .load(dirty_load[7]),
-    .index(mem_address[7:5]),
-    .datain(dirty_in[7]),
-    .dataout(dirty_out[7])
-);
-l2_data_array #(.s_offset(5), .s_index(3)) data_array_7(
-    .clk(clk),
-    .rst(rst),
-    .write_en(way_write_en_sel[7]),
-    .index(mem_address[7:5]),
-    .datain(data_array_in),
-    .dataout(data_array_out[7])
-);
+l2_array #(.width(24)) tag_6(.clk(clk), .rst(), .load(tag_load[6]), .index(set), .datain(tag), .dataout(tag_out[6]));
+l2_array #(.width(1)) valid_6(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[6]), .index(set), .dataout(valid_out[6]));
+l2_array #(.width(1)) dirty_6(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[6]), .index(set), .dataout(dirty_out[6]));
+l2_data_array data_array_6(.clk(clk), .rst(), .write_en(data_write_en[6]), .index(set), .datain(data_array_in), .dataout(data_array_out[6]));
 
-plru #(.s_index(3), .width(3)) pLRU(
-    .clk(clk),
-    .rst(rst),
-    .load(lru_load),
-    .index(mem_address[7:5]), 
-    .mru(mru),
-    .plru(plru)
-);
+l2_array #(.width(24)) tag_7(.clk(clk), .rst(), .load(tag_load[7]), .index(set), .datain(tag), .dataout(tag_out[7]));
+l2_array #(.width(1)) valid_7(.clk(clk), .rst(rst), .load(valid_load), .datain(valid_in[7]), .index(set), .dataout(valid_out[7]));
+l2_array #(.width(1)) dirty_7(.clk(clk), .rst(), .load(dirty_load), .datain(dirty_in[7]), .index(set), .dataout(dirty_out[7]));
+l2_data_array data_array_7(.clk(clk), .rst(), .write_en(data_write_en[7]), .index(set), .datain(data_array_in), .dataout(data_array_out[7]));
 
-//always_comb begin: WAY_HIT
-//    for (logic [3:0] i = 0; i < 4'd8; i++) begin
-//        way_hit[i] = (way_out[i] == mem_address[31:8]) && valid_out[i];
-//    end
-//end
+plru #(.s_index(3)) pLRU(.clk(clk), .rst(rst), .load(lru_load), .index(set), .mru(mru), .plru(plru));
 
-assign way_hit[0] = (way_out[0] == mem_address[31:8]) && valid_out[0];
-assign way_hit[1] = (way_out[1] == mem_address[31:8]) && valid_out[1];
-assign way_hit[2] = (way_out[2] == mem_address[31:8]) && valid_out[2];
-assign way_hit[3] = (way_out[3] == mem_address[31:8]) && valid_out[3];
-assign way_hit[4] = (way_out[4] == mem_address[31:8]) && valid_out[4];
-assign way_hit[5] = (way_out[5] == mem_address[31:8]) && valid_out[5];
-assign way_hit[6] = (way_out[6] == mem_address[31:8]) && valid_out[6];
-assign way_hit[7] = (way_out[7] == mem_address[31:8]) && valid_out[7];
-assign hit = (way_hit != 8'b0);
+always_comb begin
+    for (int i = 0; i < 8; i++) begin
+        way_hit[i] = (tag == tag_out[i]) && valid_out[i];
+    end
 
-assign cache_o = data_array_out[way_sel];
+    cache_o = data_array_out[way_sel];
 
-always_comb begin: LOGIC
-    unique case (pmem_address_sel)
-        pmem_addr_mux::cpu: pmem_address = {mem_address[31:5], 5'b0};
-        pmem_addr_mux::dirty_0_write: pmem_address = {way_out[0], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_1_write: pmem_address = {way_out[1], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_2_write: pmem_address = {way_out[2], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_3_write: pmem_address = {way_out[3], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_4_write: pmem_address = {way_out[4], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_5_write: pmem_address = {way_out[5], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_6_write: pmem_address = {way_out[6], mem_address[7:5], 5'b0};
-        pmem_addr_mux::dirty_7_write: pmem_address = {way_out[7], mem_address[7:5], 5'b0};
-        default: pmem_address = {mem_address[31:5], 5'b0};
+    pmem_address = {tag_out[way_sel], set, 5'b0};
+
+    case(way_data_in_sel)
+        1'b0: data_array_in = pmem_rdata;
+        1'b1: data_array_in = mem_wdata;
     endcase
-
-	unique case (way_data_in_sel)
-		data_in_mux::cacheline_adaptor: data_array_in = pmem_rdata;
-		data_in_mux::bus_adaptor: data_array_in = mem_wdata;
-		default: data_array_in = pmem_rdata;
-    endcase
-	
-//    for (logic [3:0] i = 0; i < 4'd8; i++) begin
-//        unique case (way_write_en_sel[i])
-//            data_write_en_mux::idle: data_array_write_en[i] = 1'b0;
-//            data_write_en_mux::load_mem: data_array_write_en[i] = 1'b1;
-//            default: data_array_write_en[i] = 1'b0;
-//        endcase
-//    end
 end
 
 endmodule : l2_cache_datapath

@@ -56,6 +56,21 @@ set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH mp4_tb -section
 set_global_assignment -name EDA_TEST_BENCH_NAME mp4_tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id mp4_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME mp4_tb -section_id mp4_tb
+set_global_assignment -name EDA_TEST_BENCH_NAME ptable_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id ptable_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME ptable_tb -section_id ptable_tb
+set_global_assignment -name EDA_TEST_BENCH_NAME pbp_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id pbp_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME pbp_tb -section_id pbp_tb
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name EDA_TEST_BENCH_NAME btb_plru_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id btb_plru_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME btb_plru_tb -section_id btb_plru_tb
+set_global_assignment -name EDA_TEST_BENCH_NAME btb_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id btb_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME btb_tb -section_id btb_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE hvl/magic_dual_port.sv -section_id mp4_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE hvl/param_memory.sv -section_id mp4_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE hvl/rvfi_itf.sv -section_id mp4_tb
@@ -64,22 +79,23 @@ set_global_assignment -name EDA_TEST_BENCH_FILE hvl/shadow_memory.sv -section_id
 set_global_assignment -name EDA_TEST_BENCH_FILE hvl/source_tb.sv -section_id mp4_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE hvl/tb_itf.sv -section_id mp4_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE hvl/top.sv -section_id mp4_tb
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/shift_reg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/ptable.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/pbp.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/btb_plru.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/btb_array.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/btb.sv
+set_global_assignment -name EDA_TEST_BENCH_FILE hvl/ptable_tb.sv -section_id ptable_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE hvl/pbp_tb.sv -section_id pbp_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE hvl/btb_plru_tb.sv -section_id btb_plru_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE hvl/btb_tb.sv -section_id btb_tb
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/plru.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_data_array.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_cache_mux_types.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_cache_datapath.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_cache_control.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_cache.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_array.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_data_array.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_cache_mux_types.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/l2_cache_datapath.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/btb_plru.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/btb_array.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/btb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/shift_reg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/pbp.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/pbp/ptable.sv
 set_global_assignment -name SDC_FILE mp4.out.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/cacheline_adaptor.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/given_cache/cache_top.sv
@@ -110,4 +126,9 @@ set_global_assignment -name SYSTEMVERILOG_FILE hdl/rv32i_types.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/rv32i_mux_types.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/ctrl_instr_types.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/pc_reg.sv
+set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
+set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
+set_global_assignment -name POWER_USE_INPUT_FILES ON
+set_global_assignment -name POWER_INPUT_FILE_NAME simulation/modelsim/cmp.vcd -section_id cmp.vcd
+set_instance_assignment -name POWER_READ_INPUT_FILE cmp.vcd -to mp4
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

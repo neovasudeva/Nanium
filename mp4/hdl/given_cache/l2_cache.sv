@@ -1,8 +1,3 @@
-import rv32i_types::*;
-import pmem_addr_mux::*;
-import data_in_mux::*;
-import data_write_en_mux::*;
-
 module l2_cache #(
     parameter s_offset = 5,
     parameter s_index  = 3,
@@ -10,15 +5,14 @@ module l2_cache #(
     parameter s_mask   = 2**s_offset,
     parameter s_line   = 8*s_mask,
     parameter num_sets = 2**s_index
-)
-(
+) (
     input clk,
     input rst,
 
-    // Port to CPU
+    // Port to L1 cache
     input logic mem_read,
     input logic mem_write,
-    input rv32i_word mem_address,
+    input logic [31:0] mem_address,
     input logic [255:0] mem_wdata,
     output logic mem_resp,
     output logic [255:0] mem_rdata,
@@ -28,36 +22,44 @@ module l2_cache #(
     input [255:0] pmem_rdata,
     output logic pmem_read,
     output logic pmem_write,
-    output rv32i_word pmem_address,
+    output logic [31:0] pmem_address,
     output [255:0] pmem_wdata
 );
 
-logic [23:0] way_out[8];
 logic [7:0] valid_out;
 logic [7:0] dirty_out;
 logic [2:0] plru;
-logic [7:0] way_load;
-logic [7:0] valid_load;
+logic [7:0] tag_load;
+logic valid_load;
 logic [7:0] valid_in;
-logic [7:0] dirty_load;
+logic dirty_load;
 logic [7:0] dirty_in;
 logic lru_load;
 logic [2:0] mru;
-logic hit;
 logic [7:0] way_hit;
 
 logic [2:0] way_sel;
-pmem_addr_mux_sel_t pmem_address_sel;
-data_in_mux_sel_t way_data_in_sel;
-data_write_en_mux_sel_t way_write_en_sel[8];
+logic way_data_in_sel;
+logic [7:0] data_write_en;
+
+logic mem_read2;
+logic mem_write2;
+logic [31:0] mem_address2;
+logic [255:0] mem_wdata2;
+
+always_ff @(posedge clk) begin
+    mem_read2 <= mem_read;
+    mem_write2 <= mem_write;
+    mem_address2 <= mem_address;
+    mem_wdata2 <= mem_wdata;
+end
 
 logic [255:0] cache_o;
 assign mem_rdata = cache_o;
 assign pmem_wdata = cache_o;
 
-l2_cache_control control(.*);
+l2_cache_control control(.mem_read(mem_read2), .mem_write(mem_write2), .*);
 
-l2_cache_datapath datapath(.*);
-
+l2_cache_datapath datapath(.mem_address(mem_address2), .mem_wdata(mem_wdata2), .*);
 
 endmodule : l2_cache

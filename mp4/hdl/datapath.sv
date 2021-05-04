@@ -103,9 +103,10 @@ logic cache_stall;
 logic branch_rst;
 assign cache_stall = ((dcache_read || dcache_write) && ~dcache_resp) || 
                      ((icache_read) && ~icache_resp);
-assign branch_rst = (bp_rst) || 
+assign branch_rst = bp_rst || exmem_instruction.opcode == rv32i_types::op_jalr; 
+                    /*(bp_rst) || 
                     (exmem_instruction.opcode == rv32i_types::op_jal) || 
-                    (exmem_instruction.opcode == rv32i_types::op_jalr);
+                    (exmem_instruction.opcode == rv32i_types::op_jalr);*/
 					
 // loads and reset
 assign pc_load = ~forward_stall && ~cache_stall;
@@ -126,20 +127,33 @@ assign icache_addr = if_pc;
 /*****************************************************************************/ 
 
 /******************************** PERF COUNTERS ******************************/ 
-int br_wrong = 0;
-int br_total = 0;
-int br_wrong_guess = 0;
+int cbr_wrong = 0;
+int cbr_total = 0;
+int ubr_wrong = 0;
+int ubr_total = 0;
 int num_btb_hit = 0;
+int num_btb_req = 0;
 
 always_ff @(posedge clk) begin
-	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
-		br_total <= br_total + 1;
+	// conditional branches
 	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && bp_rst)
-		br_wrong <= br_wrong + 1;
-    if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall && exmem_pbp.bp_br_en != exmem_br_en)
-		br_wrong_guess <= br_wrong_guess + 1;
-    if (if_instruction.opcode == rv32i_types::op_br && ~cache_stall && ~forward_stall && btb_hit == 1'b1)
+		cbr_wrong <= cbr_wrong + 1;
+	if (exmem_instruction.opcode == rv32i_types::op_br && ~cache_stall)
+		cbr_total <= cbr_total + 1;
+		
+	// unconditional and conditional branches
+	if ((exmem_instruction.opcode == rv32i_types::op_br || exmem_instruction.opcode == rv32i_types::op_jal || 
+		exmem_instruction.opcode == rv32i_types::op_jalr) && ~cache_stall)
+		ubr_total <= ubr_total + 1;
+	if ((exmem_instruction.opcode == rv32i_types::op_br || exmem_instruction.opcode == rv32i_types::op_jal || 
+		exmem_instruction.opcode == rv32i_types::op_jalr) && ~cache_stall && bp_rst)
+		ubr_wrong <= ubr_wrong + 1;
+		
+	// btb counters
+    if ((if_instruction.opcode == rv32i_types::op_br || if_instruction.opcode == rv32i_types::op_jal) && ~cache_stall && ~forward_stall && btb_hit)
         num_btb_hit <= num_btb_hit + 1;
+	if ((if_instruction.opcode == rv32i_types::op_br || if_instruction.opcode == rv32i_types::op_jal) && ~cache_stall && ~forward_stall)
+		num_btb_req <= num_btb_req + 1;
 end
 /*****************************************************************************/ 
 
@@ -317,6 +331,7 @@ pbp #(.w_bits(8), .hist_len(12)) pbp (
 	.rst				(rst),
 	.load				(~cache_stall),		// only load new perceptrons/btb/regs on no cache_stall
 	.if_pc				(if_pc),
+    .if_opcode          (if_instruction.opcode),
     .if_bp_br_en		(if_pbp.bp_br_en),
     .if_y_out			(if_pbp.y_out),	
     .if_bp_target		(if_pbp.bp_target),
@@ -347,10 +362,11 @@ always_comb begin
 			else 
 				pcmux_out = exmem_pc + 4;
 		end
-		
     end
-	else if (if_pbp.bp_br_en && btb_hit)
+	else if (if_instruction.opcode == rv32i_types::op_br && if_pbp.bp_br_en && btb_hit)
 		pcmux_out = if_pbp.bp_target;
+    else if (if_instruction.opcode == rv32i_types::op_jal && btb_hit)
+        pcmux_out = if_pbp.bp_target;
     else    
         pcmux_out = if_pc + 4;
 end

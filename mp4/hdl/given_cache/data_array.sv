@@ -1,13 +1,13 @@
 module data_array (
   input clk,
   input logic [31:0] write_en,
-  input logic [2:0] rindex,
-  input logic [2:0] windex,
+  input logic [3:0] rindex,
+  input logic [3:0] windex,
   input logic [255:0] datain,
   output logic [255:0] dataout
 );
 
-logic [255:0] data [8] = '{default: '0};
+logic [255:0] data [16] = '{default: '0};
 
 always_comb begin
   for (int i = 0; i < 32; i++) begin
