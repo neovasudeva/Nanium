@@ -185,10 +185,7 @@ mp4 dut(
 
 always_comb begin
 	$dumpfile("cmp.vcd");
-	$dumpvars();
 	$dumpvars(0, dut);
-	$dumplimit(10000);
-	$dumpon; 
 end
 
 endmodule
